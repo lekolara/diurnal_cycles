@@ -1,0 +1,55 @@
+##
+##  MATPLOTLIBRC FORMAT file (Nils Müller | nilsmu@chalmers.se)
+##
+##  This file provides a basic format configuration for all plots performed in
+##  python. The default settings can be found here:
+##  https://matplotlib.org/stable/tutorials/introductory/customizing.html#customizing-with-style-sheets .
+##  This file overrides all settings in the default RC-file of matplotlib when
+##  activated and is not complete. If you want to use this in your own project,
+##  after including matplotlib you can use
+##  "matplotlib.pyplot.style.use('bachelor_thesis.mplstyle')" when both files are
+##  in the same location.
+##
+
+# general settings
+figure.figsize: 3.23, 2.5
+axes.labelsize: 8
+axes.titlesize: 9.6
+axes.linewidth: 1.2
+axes.prop_cycle: cycler(color=["67001f","b2182b","d6604d","f4a582","c9a996","71838D","92c5de","4393c3","2166ac","053061"], linestyle=['solid', (0, (1, 1)), (0, (5, 2)), (0, (5, 1, 1, 1, 1, 1)), (0, (5, 1, 1, 1)), (0, (2,1,2,1,2,3)), (0, (1, 1, 1, 3)), (3,(8,1,8,1)), (0,(5,1,1,1,5,1,1,1,1,1)), (3,1,3,1,1,1,1,1)])
+
+# fonts
+font.family: serif
+font.weight: normal
+font.size: 8
+legend.fontsize: 8
+
+grid.linewidth: 0.8
+lines.linewidth: 1.8
+lines.markeredgewidth: 0.0
+lines.markersize: 6
+patch.linewidth: 0.24
+
+# Tick formatting
+xtick.major.pad: 5.6
+xtick.major.size: 5
+xtick.major.width: 1.2
+xtick.minor.size: 3.5
+xtick.minor.width: 0.8
+xtick.direction: in
+xtick.top: True
+xtick.bottom: True
+
+ytick.major.pad: 5.6
+ytick.major.size: 5
+ytick.major.width: 1.2
+ytick.minor.size: 3.5
+ytick.minor.width: 0.8
+ytick.direction: in
+ytick.left: True
+ytick.right: True
+
+# legend
+legend.borderaxespad: 1.0
+legend.framealpha: 0.9
+legend.fancybox: False
