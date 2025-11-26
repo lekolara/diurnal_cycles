@@ -1,0 +1,7 @@
+*.png
+*.pdf
+# pixi environments
+.pixi
+*.egg-info
+.vscode/
+__pycache__/
