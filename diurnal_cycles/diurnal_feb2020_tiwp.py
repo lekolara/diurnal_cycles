@@ -6,7 +6,7 @@ from pathlib import Path
 
 def load_and_process_single_file(dataset_name, input ,varname_out="tiwp"):
     """Open one file, detect variable name, rename, compute hour-of-day coordinate."""
-    ds = xr.open_dataset(input, decode_timedelta=True) #True for IMERG and ERA
+    ds = xr.open_dataset(input, decode_timedelta=True) 
 
     ds = ds.rename({"longitude": "lon", "latitude": "lat"})
         # Adjust longitudes to 0-360 if they are now from -180 to 180
@@ -22,7 +22,7 @@ def load_and_process_single_file(dataset_name, input ,varname_out="tiwp"):
         # Rename to unified name
         ds = ds.where(ds[var]>=0)
         ds = ds.rename({var: varname_out})
-        # Rename longitude to lon and latitude to lat
+        
         time_array = ds.tiwp.hour_of_day.values
         hours = (time_array / np.timedelta64(1, 'h')).astype(int) 
         # Replace the coordinate
@@ -30,6 +30,7 @@ def load_and_process_single_file(dataset_name, input ,varname_out="tiwp"):
         # Collapse the 30-min bins into 24 hourly bins
         da_hourly = da.groupby('hour_of_day').mean()
         da_hourly=da_hourly.sortby("hour_of_day").tiwp
+        
     elif dataset_name == "ERA5":
         if "total_column_cloud_ice_water" in ds and "total_column_snow_water" in ds:
             sum_var = ds["total_column_cloud_ice_water"] + ds["total_column_snow_water"]
@@ -72,11 +73,6 @@ def build_diurnal_feb2020(dataset_name, input_root, output_file):
     print(f"  Using {infile.name}")
 
     ds = xr.open_dataset(input, decode_timedelta=False) 
-    ds = ds.rename({"longitude": "lon", "latitude": "lat"})
-        # Adjust longitudes to 0-360 if they are now from -180 to 180
-    if ds.lon.min() < 0:
-        ds = ds.assign_coords(lon=((ds.lon + 360) % 360)).sortby('lon')
-
     
     diurnal = load_and_process_single_file(dataset_name, infile, varname_out="tiwp")
     lon_dim = 'longitude' if 'longitude' in diurnal.dims else 'lon'

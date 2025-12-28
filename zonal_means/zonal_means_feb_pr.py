@@ -48,7 +48,7 @@ def zonal_mean(files, var_in, var_out, multiply=None):
 # DYAMOND models
 #########################################
 DYAMOND_MODEL_NAMES = ["ARPEGE", "GEOS", "gSAM", "ICON", "IFS", "SHiELD"]
-
+DYAMOND_MODEL_NAMES = ['IFS']
 for model in DYAMOND_MODEL_NAMES:
     files = glob.glob(f"{DYAMOND_DIR}/{model}/*.nc")
     out_file = f"{OUTPUT_DIR}/{model}.nc"

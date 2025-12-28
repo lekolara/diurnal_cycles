@@ -77,7 +77,7 @@ def build_diurnal_climatology(
     ds = xr.open_dataset(input_root)
     if dataset_name == "HCC":
         ds = ds.sel(threshold=[0.36])
-        ds = ds.drop_vars('threshold')
+        ds = ds.squeeze('threshold')
 
     print(f"\n=== Building climatology for {dataset_name} ===")
 
@@ -108,12 +108,14 @@ def build_diurnal_climatology(
     lon_dim = 'longitude' if 'longitude' in final.dims else 'lon'
     hour_dim = 'hour_of_day'
     
-    hcc_local = shift_diurnal_to_local_time(final, hour_dim=hour_dim, lon_dim=lon_dim)
+    #hcc_local = shift_diurnal_to_local_time(final, hour_dim=hour_dim, lon_dim=lon_dim)
     # we decided to keep the UTC version for climatology files, and convert later
-    #hcc_local = final
+    hcc_local = final
 
     # Remove all variables, keep only the shifted one as 'hcc'
     final = hcc_local.to_dataset(name='hcc')
+    if 'threshold' in final.dims:
+        final = final.squeeze('threshold')
 
     # Remove file if it is already there
     if Path(output_file).exists():
@@ -129,19 +131,19 @@ def build_diurnal_climatology(
 
 if __name__ == "__main__":
     
-    # # Example for ccic
-    # build_diurnal_climatology(
-    #     dataset_name="HCC",
-    #     input_root="/scratch/leko/HCC/hcc_2018_all.nc",
-    #     output_file="/scratch/leko/HCC/HCC_diurnal_climatology_2018_2023.nc",
-    # )
-    
-    # Example for era5
+    # Example for ccic
     build_diurnal_climatology(
-        dataset_name="ERA5 HCC",
-        input_root="/scratch/leko/HCC/ERA5/ERA5_1_deg_diurnal/2018/2018_ERA5_diurnal.nc",
-        output_file="/scratch/leko/HCC/ERA5/ERA5_1_deg_diurnal/2018/ERA5_hcc_diurnal_climatology_2018.nc",
+        dataset_name="HCC",
+        input_root="/scratch/leko/HCC/hcc_2018_all.nc",
+        output_file="/scratch/leko/HCC/HCC_diurnal_climatology_2018_2023_utc.nc",
     )
+    
+    # # Example for era5
+    # build_diurnal_climatology(
+    #     dataset_name="ERA5 HCC",
+    #     input_root="/scratch/leko/HCC/ERA5/ERA5_1_deg_diurnal/2018/2018_ERA5_diurnal.nc",
+    #     output_file="/scratch/leko/HCC/ERA5/ERA5_1_deg_diurnal/2018/ERA5_hcc_diurnal_climatology_2018_utc.nc",
+    # )
     
 
     

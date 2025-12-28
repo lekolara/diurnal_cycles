@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import os
 import xarray as xr
 import numpy as np
 from pathlib import Path
@@ -21,7 +22,8 @@ def load_and_process_single_file(filename, varname_out="pr", multiply_era5=False
     ds = ds.where(ds[var]>=0)
     ds = ds.rename({var: varname_out})
 
-    ds = ds.assign_coords(lon=((ds.lon + 360) % 360)).sortby('lon')
+    if ds.lon.min() < 0:
+        ds = ds.assign_coords(lon=((ds.lon + 360) % 360)).sortby('lon')
 
     # Multiply by 1000 for ERA5 if requested 
     if multiply_era5:
@@ -136,11 +138,17 @@ def build_diurnal_climatology(
     lon_dim = 'longitude' if 'longitude' in final.dims else 'lon'
     hour_dim = 'hour_of_day'
     
-    pr_local = shift_diurnal_to_local_time(final, hour_dim=hour_dim, lon_dim=lon_dim)
+    #pr_local = shift_diurnal_to_local_time(final, hour_dim=hour_dim, lon_dim=lon_dim)
     # we decided to keep the UTC version for climatology files, and convert later
+    pr_local = final
 
     # Remove all variables, keep only the shifted one as 'pr'
     final = pr_local.to_dataset(name='pr')
+
+    # Remove file if it is already there
+    if Path(output_file).exists():
+        print(f"  NOTE: Output file {output_file} exists, removing.")
+        os.remove(output_file)
 
     # Fix crash: remove problematic CF-time bounds if present
     if "time_bnds" in final:
@@ -156,7 +164,7 @@ def build_diurnal_climatology(
 
 if __name__ == "__main__":
     
-    '''
+    
     # Example for ERA5
     build_diurnal_climatology(
         dataset_name="ERA5",
@@ -167,14 +175,14 @@ if __name__ == "__main__":
         monthly_pattern="{year}_{month}_ERA5_diurnal_mean.nc",
     )
     
-    '''
+    
     # Example for IMERG 
     build_diurnal_climatology(
         dataset_name="IMERG",
         input_root="/scratch/leko/IMERG/IMERG_1_deg_diurnal",
-        output_file="/scratch/leko/IMERG/IMERG_1_deg_diurnal/IMERG_diurnal_climatology_2018.nc",
+        output_file="/scratch/leko/IMERG/IMERG_1_deg_diurnal/IMERG_diurnal_climatology_2018_2023_utc.nc",
         start_year=2018,
-        end_year=2018,
+        end_year=2023,
         monthly_pattern="{year}_{month}_IMERG_diurnal_mean.nc",
     )
 

@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 
+import os
 import xarray as xr
 import numpy as np
 from pathlib import Path
 
 
-def load_and_process_single_file(filename, dataset_name, varname_out="tiwp"):
+def load_and_process_single_file(infile, dataset_name, varname_out="tiwp"):
     """Open one file, detect variable name, rename, compute hour-of-day coordinate."""
-    ds = xr.open_dataset(filename, decode_timedelta=True)
+    ds = xr.open_dataset(infile, decode_timedelta=True)
 
     ds = ds.rename({"longitude": "lon", "latitude": "lat"})
         # Adjust longitudes to 0-360 if they are now from -180 to 180
@@ -18,14 +19,12 @@ def load_and_process_single_file(filename, dataset_name, varname_out="tiwp"):
         # Detect variable name
         if "tiwp_stratified" in ds:
             var = "tiwp_stratified"
-        elif "tiwp" in ds:
-            var = "tiwp"
         else:
-            raise ValueError(f"Cannot find tiwp variable in {filename}")
+            raise ValueError(f"Cannot find tiwp variable in {infile}")
         # Rename to unified name
         ds = ds.where(ds[var]>=0)
         ds = ds.rename({var: varname_out})
-        # Rename longitude to lon and latitude to lat
+        
         time_array = ds.tiwp.hour_of_day.values
         hours = (time_array / np.timedelta64(1, 'h')).astype(int) 
         # Replace the coordinate
@@ -33,6 +32,7 @@ def load_and_process_single_file(filename, dataset_name, varname_out="tiwp"):
         # Collapse the 30-min bins into 24 hourly bins
         da_hourly = da.groupby('hour_of_day').mean()
         da_hourly=da_hourly.sortby("hour_of_day").tiwp
+
     elif dataset_name == "ERA5":
         if "total_column_cloud_ice_water" in ds and "total_column_snow_water" in ds:
             sum_var = ds["total_column_cloud_ice_water"] + ds["total_column_snow_water"]
@@ -40,7 +40,7 @@ def load_and_process_single_file(filename, dataset_name, varname_out="tiwp"):
             ds = ds.where(ds[varname_out]>=0)
             da_hourly = ds.rename({"hour": "hour_of_day"}).tiwp
         else:
-            raise ValueError(f"Cannot find tiwp variable in {filename}")
+            raise ValueError(f"Cannot find tiwp variable in {infile}")
     return da_hourly
 
 def shift_diurnal_to_local_time(da, hour_dim="hour_of_day", lon_dim="lon"):
@@ -137,6 +137,11 @@ def build_diurnal_climatology(
     # Remove all variables, keep only the shifted one as 'tiwp'
     final = tiwp_local.to_dataset(name='tiwp')
 
+    # Remove file if it is already there
+    if Path(output_file).exists():
+        print(f"  NOTE: Output file {output_file} exists, removing.")
+        os.remove(output_file)
+
     # Save output
     print(f"\n=== Saving final climatology → {output_file} ===")
     final.to_netcdf(output_file)
@@ -164,9 +169,9 @@ if __name__ == "__main__":
     build_diurnal_climatology(
         dataset_name="CCIC_TIWP",
         input_root="/data/s5/users/lara/master_thesis/data/ccic/",
-        output_file="/data/s5/users/lara/master_thesis/data/ccic/CCIC_TIWP_diurnal_climatology_2018.nc",
+        output_file="tiwp_mean",
         start_year=2018,
-        end_year=2013,
+        end_year=2023,
         monthly_pattern="ccic_cpcir_{year}_{month}_monthlymean_1deg_tiwp.nc",
     )
 
