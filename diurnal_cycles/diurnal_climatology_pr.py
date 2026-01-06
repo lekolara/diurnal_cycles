@@ -73,9 +73,10 @@ def build_diurnal_climatology(
         dataset_name,
         input_root,
         output_file,
-        start_year=2018,
-        end_year=2023,
-        monthly_pattern="{year}_{month}.nc",
+        start_year,
+        end_year,
+        monthly_pattern,
+        utc
 ):
     input_root = Path(input_root)
 
@@ -135,15 +136,20 @@ def build_diurnal_climatology(
 
     # Only keep the local time shifted version as 'pr'
     #varname = list(final.data_vars)[0]
-    lon_dim = 'longitude' if 'longitude' in final.dims else 'lon'
+    lon_dim = 'lon'
     hour_dim = 'hour_of_day'
-    
-    #pr_local = shift_diurnal_to_local_time(final, hour_dim=hour_dim, lon_dim=lon_dim)
-    # we decided to keep the UTC version for climatology files, and convert later
-    pr_local = final
 
-    # Remove all variables, keep only the shifted one as 'pr'
+    if utc:
+        pr_local = final
+        output_file = output_file.replace(".nc", "_utc.nc")
+    else:
+        pr_local = shift_diurnal_to_local_time(final, hour_dim=hour_dim, lon_dim=lon_dim)
+        # we decided to keep the UTC version for climatology files, and convert later
+        # # Remove all variables, keep only the shifted one as 'pr'
     final = pr_local.to_dataset(name='pr')
+
+    # Reorder dimensions to (month, hour_of_day, lat, lon)
+    final = final.transpose("month", "hour_of_day", "lat", "lon")
 
     # Remove file if it is already there
     if Path(output_file).exists():
@@ -169,10 +175,11 @@ if __name__ == "__main__":
     build_diurnal_climatology(
         dataset_name="ERA5",
         input_root="/scratch/leko/ERA5/ERA5_1_deg_diurnal",
-        output_file="/scratch/leko/ERA5/ERA5_1_deg_diurnal/ERA5_diurnal_climatology_2018_2023_utc.nc",
+        output_file="/scratch/leko/ERA5/ERA5_1_deg_diurnal/ERA5_diurnal_climatology_2018.nc",
         start_year=2018,
-        end_year=2023,
+        end_year=2018,
         monthly_pattern="{year}_{month}_ERA5_diurnal_mean.nc",
+        utc=True
     )
     
     
@@ -180,10 +187,11 @@ if __name__ == "__main__":
     build_diurnal_climatology(
         dataset_name="IMERG",
         input_root="/scratch/leko/IMERG/IMERG_1_deg_diurnal",
-        output_file="/scratch/leko/IMERG/IMERG_1_deg_diurnal/IMERG_diurnal_climatology_2018_2023_utc.nc",
+        output_file="/scratch/leko/IMERG/IMERG_1_deg_diurnal/IMERG_diurnal_climatology_2018.nc",
         start_year=2018,
-        end_year=2023,
+        end_year=2018,
         monthly_pattern="{year}_{month}_IMERG_diurnal_mean.nc",
+        utc=True
     )
 
     

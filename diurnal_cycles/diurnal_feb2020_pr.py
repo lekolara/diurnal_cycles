@@ -5,7 +5,7 @@ import numpy as np
 from pathlib import Path
 
 def load_and_process_single_file(filename, varname_out="pr", multiply=False):
-    ds = xr.open_dataset(filename)
+    ds = xr.open_dataset(filename, decode_timedelta=True)
     if "precipitation" in ds:
         var = "precipitation"
     elif "total_precipitation" in ds:
@@ -44,7 +44,7 @@ def compute_diurnal_mean(ds, var="pr"):
     diurnal = ds[var].groupby("hour_of_day").mean("time")
     return diurnal.sortby("hour_of_day")
 
-def build_diurnal_feb2020(dataset_name, input_root, output_file, infile_name, multiply=False):
+def build_diurnal_feb2020(dataset_name, input_root, output_file, infile_name, multiply, utc):
     input_root = Path(input_root)
     print(f"\n=== Building February 2020 diurnal for {dataset_name} ===")
     infile = input_root / infile_name
@@ -56,7 +56,11 @@ def build_diurnal_feb2020(dataset_name, input_root, output_file, infile_name, mu
     diurnal = compute_diurnal_mean(ds)
     lon_dim = 'longitude' if 'longitude' in diurnal.dims else 'lon'
     hour_dim = 'hour_of_day'
-    pr_local = shift_diurnal_to_local_time(diurnal, hour_dim=hour_dim, lon_dim=lon_dim)
+    if utc:
+        pr_local = diurnal
+        output_file = output_file.replace(".nc", "_utc.nc")
+    else:
+        pr_local = shift_diurnal_to_local_time(diurnal, hour_dim=hour_dim, lon_dim=lon_dim)
     final = pr_local.to_dataset(name='pr')
     if "time_bnds" in final:
         final = final.drop_vars("time_bnds")
@@ -64,7 +68,7 @@ def build_diurnal_feb2020(dataset_name, input_root, output_file, infile_name, mu
     final.to_netcdf(output_file)
     print("Done.")
 
-def build_dyamond_feb2020(model_name, input_root, output_file):
+def build_dyamond_feb2020(model_name, input_root, output_file, utc):
     
     input_root = Path(input_root)
     output_file = Path(output_file)
@@ -81,7 +85,11 @@ def build_dyamond_feb2020(model_name, input_root, output_file):
     diurnal = compute_diurnal_mean(ds)
     lon_dim = 'longitude' if 'longitude' in diurnal.dims else 'lon'
     hour_dim = 'hour_of_day'
-    pr_local = shift_diurnal_to_local_time(diurnal, hour_dim=hour_dim, lon_dim=lon_dim)
+    if utc:
+        pr_local = diurnal
+        output_file = output_file.with_name(output_file.stem + "_utc.nc")
+    else:
+        pr_local = shift_diurnal_to_local_time(diurnal, hour_dim=hour_dim, lon_dim=lon_dim)
     final = pr_local.to_dataset(name='pr')
     if "time_bnds" in final:
         final = final.drop_vars("time_bnds")
@@ -91,7 +99,7 @@ def build_dyamond_feb2020(model_name, input_root, output_file):
 
 if __name__ == "__main__":
     
-    '''
+    
     # ERA5
     build_diurnal_feb2020(
         dataset_name="ERA5",
@@ -99,6 +107,7 @@ if __name__ == "__main__":
         output_file="/scratch/leko/ERA5/ERA5_1_deg_diurnal/ERA5_diurnal_feb2020.nc",
         infile_name="2020_02_ERA5_diurnal_mean.nc",
         multiply=True,
+        utc = True,
     )
     # IMERG
     build_diurnal_feb2020(
@@ -107,18 +116,20 @@ if __name__ == "__main__":
         output_file="/scratch/leko/IMERG/IMERG_1_deg_diurnal/IMERG_diurnal_feb2020.nc",
         infile_name="2020_02_IMERG_diurnal_mean.nc",
         multiply=False,
+        utc = True,
     )
-    '''
+    
     # DYAMOND models
     #
-    #dyamond_models = ["ARPEGE", "GEOS", "gSAM", "ICON", "IFS", "SHiELD"]
-    dyamond_models = ["ARPEGE"]
+    dyamond_models = ["ARPEGE", "GEOS", "gSAM", "ICON", "IFS", "SHiELD"]
+    #dyamond_models = ["ARPEGE"]
 
     for model in dyamond_models:
         build_dyamond_feb2020(
             model_name=model,
             input_root=f"/scratch/nilsmu/DYAMOND_precipitation/data/latlon_grid_1deg/{model}",
             output_file=f"/scratch/leko/DYAMOND/diurnal/{model}_diurnal_feb2020.nc",
+            utc = True,
         )
 
     

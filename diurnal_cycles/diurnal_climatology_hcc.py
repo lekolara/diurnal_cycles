@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from pytz import utc
 import xarray as xr
 import numpy as np
 from pathlib import Path
@@ -70,6 +71,7 @@ def build_diurnal_climatology(
         dataset_name,
         input_root,
         output_file,
+        utc
 ):
     input_root = Path(input_root)
     year = 2018
@@ -108,12 +110,14 @@ def build_diurnal_climatology(
     lon_dim = 'longitude' if 'longitude' in final.dims else 'lon'
     hour_dim = 'hour_of_day'
     
-    #hcc_local = shift_diurnal_to_local_time(final, hour_dim=hour_dim, lon_dim=lon_dim)
-    # we decided to keep the UTC version for climatology files, and convert later
-    hcc_local = final
-
-    # Remove all variables, keep only the shifted one as 'hcc'
+    if utc:
+        hcc_local = final
+        output_file = output_file.replace(".nc", "_utc.nc")
+    else:
+        hcc_local = shift_diurnal_to_local_time(final, hour_dim=hour_dim, lon_dim=lon_dim)
+    
     final = hcc_local.to_dataset(name='hcc')
+
     if 'threshold' in final.dims:
         final = final.squeeze('threshold')
 
@@ -135,14 +139,16 @@ if __name__ == "__main__":
     build_diurnal_climatology(
         dataset_name="HCC",
         input_root="/scratch/leko/HCC/hcc_2018_all.nc",
-        output_file="/scratch/leko/HCC/HCC_diurnal_climatology_2018_2023_utc.nc",
+        output_file="/scratch/leko/HCC/HCC_diurnal_climatology_2018.nc",
+        utc=True
     )
     
     # # Example for era5
     # build_diurnal_climatology(
     #     dataset_name="ERA5 HCC",
     #     input_root="/scratch/leko/HCC/ERA5/ERA5_1_deg_diurnal/2018/2018_ERA5_diurnal.nc",
-    #     output_file="/scratch/leko/HCC/ERA5/ERA5_1_deg_diurnal/2018/ERA5_hcc_diurnal_climatology_2018_utc.nc",
+    #     output_file="/scratch/leko/HCC/ERA5/ERA5_1_deg_diurnal/2018/ERA5_hcc_diurnal_climatology_2018.nc",
+    #     utc=True
     # )
     
 

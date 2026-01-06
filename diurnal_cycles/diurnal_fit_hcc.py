@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
-# %%
+
 import xarray as xr
 import numpy as np
 from pathlib import Path
 from scipy.linalg import lstsq
 from scipy.stats import pearsonr
+import os
 
 
 def sinfit2d_with_metrics(x, y):
@@ -39,30 +40,26 @@ def sinfit2d_with_metrics(x, y):
             np.sin(2 * np.pi * x / period),
             np.cos(2 * np.pi * x / period)
         ))
-    A = A[:, 1:]  # remove constant column
-
-
-    # Allocate arrays
+    
+    # Prepare output arrays
     b = np.full((A.shape[1], y.shape[1], y.shape[2]), np.nan)
-    R_map = np.full((y.shape[1], y.shape[2]), np.nan)
-    residuals_map = np.full((y.shape[1], y.shape[2]), np.nan)
     coeff_of_determination_map = np.full((y.shape[1], y.shape[2]), np.nan)
-    coeff_of_determination_24_map = np.full((y.shape[1], y.shape[2]), np.nan)
-    coeff_of_determination_12_map = np.full((y.shape[1], y.shape[2]), np.nan)
+    #coeff_of_determination_24_map = np.full((y.shape[1], y.shape[2]), np.nan)
+    #coeff_of_determination_12_map = np.full((y.shape[1], y.shape[2]), np.nan)
 
     for i in range(y.shape[1]):
         for j in range(y.shape[2]):
             y_ij = y[:, i, j]
             if not np.isnan(y_ij).any():
-                b[:, i, j], residuals_map[i, j], _, _ = lstsq(A, y_ij)
+                b[:, i, j], _, _, _ = lstsq(A, y_ij)
                 
                 
     # Save coefficients
-    m0 = y.mean(dim = 'hour_of_day').values
-    s1 = b[0]
-    c1 = b[1]
-    s2 = b[2]
-    c2 = b[3]
+    m0 = b[0]
+    s1 = b[1]
+    c1 = b[2]
+    s2 = b[3]
+    c2 = b[4]
 
     y_fit = np.zeros((24, s1.shape[0], s1.shape[1]))  # (time, lat, lon)
     for i in range(s1.shape[0]):  
@@ -76,12 +73,12 @@ def sinfit2d_with_metrics(x, y):
                             m0[i,j])
             
             # 24-hour component
-            y_fit_24 = s1[i,j] * np.sin(2 * np.pi * x / 24) + c1[i,j] * np.cos(2 * np.pi * x / 24) + m0[i,j]
+            # y_fit_24 = s1[i,j] * np.sin(2 * np.pi * x / 24) + c1[i,j] * np.cos(2 * np.pi * x / 24) + m0[i,j]
             # 12-hour component
-            y_fit_12 = s2[i,j] * np.sin(2 * np.pi * x / 12) + c2[i,j] * np.cos(2 * np.pi * x / 12) + m0[i,j]
+            #y_fit_12 = s2[i,j] * np.sin(2 * np.pi * x / 12) + c2[i,j] * np.cos(2 * np.pi * x / 12) + m0[i,j]
             
             # Compute R (Pearson correlation)
-            R_map[i, j], _ = pearsonr(y_ij, y_fit[:,i,j])
+            #R_map[i, j], _ = pearsonr(y_ij, y_fit[:,i,j])
             
             # Compute total sum of squares and residual sum of squares
             ss_res = np.sum((y_ij - y_fit[:,i,j])**2)
@@ -89,83 +86,31 @@ def sinfit2d_with_metrics(x, y):
             # Compute coefficient of determination (R^2)
             coeff_of_determination_map[i, j] = 1 - (ss_res / ss_tot) if ss_tot > 0 else np.nan
             # Compute coefficient of determination (R^2) for 24-hour and 12-hour components
-            ss_res_24 = np.sum((y_ij - y_fit_24)**2)
-            ss_res_12 = np.sum((y_ij - y_fit_12)**2)
-            coeff_of_determination_24_map[i, j] = 1 - (ss_res_24 / ss_tot) if ss_tot > 0 else np.nan
-            coeff_of_determination_12_map[i, j] = 1 - (ss_res_12 / ss_tot) if ss_tot > 0 else np.nan
+            # ss_res_24 = np.sum((y_ij - y_fit_24)**2)
+            # ss_res_12 = np.sum((y_ij - y_fit_12)**2)
+            #coeff_of_determination_24_map[i, j] = 1 - (ss_res_24 / ss_tot) if ss_tot > 0 else np.nan
+            #coeff_of_determination_12_map[i, j] = 1 - (ss_res_12 / ss_tot) if ss_tot > 0 else np.nan
     
 
-    # Varience 
-    
     # Convert to xarray DataArrays
-    s1 = xr.DataArray(s1, dims=["lat", "lon"], coords={"lat": y.lat, "lon": y.lon})
-    c1 = xr.DataArray(c1, dims=["lat", "lon"], coords={"lat": y.lat, "lon": y.lon})
-    s2 = xr.DataArray(s2, dims=["lat", "lon"], coords={"lat": y.lat, "lon": y.lon})
-    c2 = xr.DataArray(c2, dims=["lat", "lon"], coords={"lat": y.lat, "lon": y.lon})
-    #R_map = xr.DataArray(R_map, dims=["lat", "lon"], coords={"lat": y.lat, "lon": y.lon})
-    #residuals_map = xr.DataArray(residuals_map, dims=["lat", "lon"], coords={"lat": y.lat, "lon": y.lon})
+    y_fit = xr.DataArray(y_fit, dims=["hour_of_day", "lat", "lon"], coords={"hour_of_day": x, "lat": y.lat, "lon": y.lon})
     coeff_of_determination_map = xr.DataArray(coeff_of_determination_map, dims=["lat", "lon"], coords={"lat": y.lat, "lon": y.lon})
     #coeff_of_determination_24_map = xr.DataArray(coeff_of_determination_24_map, dims=["lat", "lon"], coords={"lat": y.lat, "lon": y.lon})
     #coeff_of_determination_12_map = xr.DataArray(coeff_of_determination_12_map, dims=["lat", "lon"], coords={"lat": y.lat, "lon": y.lon})
 
-    return s1, c1, s2, c2, coeff_of_determination_map
+    return y_fit, coeff_of_determination_map
 
 
-def fitted_amplitude_phase(s1, c1, s2, c2, y, relative = None):
+def fitted_amplitude(y_fit, relative = None):  
 
-    """
-    Calculate the amplitude of the fitted diurnal cycle.
-
-    Parameters
-    s1 : xarray Dataarray, Sine amplitude for 24-hour component
-    c1 : xarray Dataarray, Cosine amplitude for 24-hour component
-    s2 : xarray Dataarray, Sine amplitude for 12-hour component
-    c2 : xarray Dataarray, Cosine amplitude for 12-hour component
-    x : numpy array, The x-axis data (time)
-    y : xarray Dataarray, The y-axis data (TIWP)                                                            
-
-    Returns     
-    A1 : xarray Dataarray, 24-hour amplitude
-    A2 : xarray Dataarray, 12-hour amplitude
-    A_total_xr : xarray Dataarray, Peak-to-peak amplitude
-
-    """                             
-
-    # Convert to numpy array
-    s1 = s1.values
-    c1 = c1.values
-    s2 = s2.values
-    c2 = c2.values
-
-    
-    # Compute diurnal cycle for each lat/lon point
-    x = np.arange(0, 24, 1)
-    y_fit = np.zeros((24, s1.shape[0], s1.shape[1]))  # (time, lat, lon)
-    for i in range(s1.shape[0]):  
-        for j in range(s1.shape[1]): 
-            y_fit[:, i, j] = (s1[i,j] * np.sin(2 * np.pi * x / 24) +
-                            c1[i,j] * np.cos(2 * np.pi * x / 24) +
-                            s2[i,j] * np.sin(2 * np.pi * x / 12) +
-                            c2[i,j] * np.cos(2 * np.pi * x / 12))
-            
-    y_fit = y_fit + y.mean(dim = 'hour_of_day').values  # Add mean back to fit
-
-    A_total_ptp = y_fit.max(axis = 0) - y_fit.min(axis = 0)  # Peak-to-peak amplitude
+    A_total_ptp = y_fit.max(dim='hour_of_day') - y_fit.min(dim='hour_of_day')  # Peak-to-peak amplitude
 
     if relative:
-        mean = y.mean(dim = 'hour_of_day').values
+        mean = y_fit.mean(dim = 'hour_of_day').values
         A_total_ptp = A_total_ptp/mean
     
-    # Convert to xarray
-    A_total_ptp = xr.DataArray(A_total_ptp, dims=["lat", "lon"], coords={"lat": y.lat, "lon": y.lon})
+    return A_total_ptp
 
-    # Find peak time
-    t_peak = y_fit.argmax(axis = 0)
-
-    # Convert to xarray
-    t_peak_xr = xr.DataArray(t_peak, dims=["lat", "lon"], coords={"lat": y.lat, "lon": y.lon})
-    
-    return A_total_ptp, t_peak_xr
 
 
 # --------------------------------------------------
@@ -173,30 +118,26 @@ def fitted_amplitude_phase(s1, c1, s2, c2, y, relative = None):
 # --------------------------------------------------
 
 # CCIC
-# INPUT_FILE = "/scratch/leko/HCC/HCC_diurnal_climatology_2018_2023_utc.nc"
+INPUT_FILE = "/scratch/leko/HCC/HCC_diurnal_climatology_2018_2023_utc.nc"
 
-# VAR_NAME = "hcc"          # precipitation variable
-# RELATIVE = False        # True -> normalize by monthly mean
-
-# if RELATIVE:
-#     OUTPUT_FILE_AMPLITUDE = f"/scratch/leko/HCC/HCC_diurnal_amplitude_relative.nc"
-# else:
-#     OUTPUT_FILE_AMPLITUDE = f"/scratch/leko/HCC/HCC_diurnal_amplitude.nc"
-
-# OUTPUT_FILE_PHASE = f"/scratch/leko/HCC/HCC_diurnal_phase_utc.nc"
-# ERA5
-RELATIVE = False 
-VAR_NAME = "hcc"
-
-INPUT_FILE = "/scratch/leko/HCC/ERA5/ERA5_1_deg_diurnal/2018/ERA5_hcc_diurnal_climatology_2018_utc.nc"
+VAR_NAME = "hcc"          # precipitation variable
+RELATIVE = False        # True -> normalize by monthly mean
 
 if RELATIVE:
-    OUTPUT_FILE_AMPLITUDE = f"/scratch/leko/HCC/ERA5/ERA5_1_deg_diurnal/ERA5_diurnal_amplitude_relative.nc"
+    OUTPUT_FILE = f"/scratch/leko/HCC/CCIC_HCC_diurnal_fit_utc_relative_new.nc"
 else:
-    OUTPUT_FILE_AMPLITUDE = f"/scratch/leko/HCC/ERA5/ERA5_1_deg_diurnal/ERA5_diurnal_amplitude.nc"
-OUTPUT_FILE_PHASE = f"/scratch/leko/HCC/ERA5/ERA5_1_deg_diurnal/ERA5_diurnal_phase_utc.nc"
+    OUTPUT_FILE = f"/scratch/leko/HCC/CCIC_HCC_diurnal_fit_utc_new.nc"
 
+# ERA5
+# RELATIVE = False 
+# VAR_NAME = "hcc"
 
+# INPUT_FILE = "/scratch/leko/HCC/ERA5/ERA5_1_deg_diurnal/2018/ERA5_hcc_diurnal_climatology_2018_utc.nc"
+
+# if RELATIVE:
+#     OUTPUT_FILE = f"/scratch/leko/HCC/ERA5/ERA5_1_deg_diurnal/ERA5_diurnal_fit_utc_relative_new.nc"
+# else:
+#     OUTPUT_FILE = f"/scratch/leko/HCC/ERA5/ERA5_1_deg_diurnal/ERA5_diurnal_fit_utc_new.nc"
 
 # --------------------------------------------------
 # LOAD DATA
@@ -210,7 +151,8 @@ da = da.where(da > 0)  # Mask negative values
 x = np.arange(24)
 
 monthly_amplitudes = []
-monthly_peaks = []
+monthly_y_fit = []
+monthly_coeff_of_determination = []
 
 # --------------------------------------------------
 # MONTHLY LOOP
@@ -226,16 +168,18 @@ for m in da.month.values:
 
 
     # --- Harmonic fit ---
-    s1, c1, s2, c2, *_ = sinfit2d_with_metrics(x, y)
+    y_fit, coeff_of_determination = sinfit2d_with_metrics(x, y)
 
     # --- Amplitudes ---
-    A_total, t_peak = fitted_amplitude_phase(
-        s1, c1, s2, c2, y, relative=RELATIVE
+    A_total = fitted_amplitude(
+        y_fit, relative=RELATIVE
     )
 
     # Store *total* diurnal amplitude
     monthly_amplitudes.append(A_total)
-    monthly_peaks.append(t_peak)
+    monthly_y_fit.append(y_fit)
+    monthly_coeff_of_determination.append(coeff_of_determination)                   
+
 # --------------------------------------------------
 # BUILD OUTPUT DATASET
 # --------------------------------------------------
@@ -252,26 +196,44 @@ amp_month.attrs = {
     "source_file": INPUT_FILE,
 }
 
-phase_month = xr.concat(monthly_peaks, dim="month")
-phase_month = phase_month.assign_coords(month=da.month)
+coeff_of_determination_month = xr.concat(monthly_coeff_of_determination, dim="month")
+coeff_of_determination_month = coeff_of_determination_month.assign_coords(month=da.month)
 
-phase_month.name = "diurnal_phase"
+coeff_of_determination_month.name = "diurnal_fit_coeff_of_determination"
 
-phase_month.attrs = {
-    "long_name": "Peak diurnal precipitation time",
-    "units": "hour of day",
-    "description": "24h+12h harmonic fit peak time",
+coeff_of_determination_month.attrs = {
+    "long_name": "Coefficient of determination for diurnal fit",
+    "units": "1",
+    "description": "Coefficient of determination (R^2) for 24h+12h harmonic fit",
     "source_file": INPUT_FILE,
 }
+
+y_fit_month = xr.concat(monthly_y_fit, dim="month")
+y_fit_month = y_fit_month.assign_coords(month=da.month)                             
+y_fit_month.name = "diurnal_fit_values"                                                     
+y_fit_month.attrs = {
+    "long_name": "Fitted diurnal cycle values",
+    "units": "mm/hr" if not RELATIVE else "fraction of mean",
+    "description": "Fitted values for 24h+12h harmonic fit",
+    "source_file": INPUT_FILE,              
+}   
+
+# BUILD FINAL DATASET
+
+ds_out = xr.Dataset({
+    "diurnal_amplitude": amp_month,
+    "diurnal_fit_coeff_of_determination": coeff_of_determination_month,
+    "diurnal_fit_values": y_fit_month
+})
+
+
 
 # --------------------------------------------------
 # SAVE TO NETCDF
 # --------------------------------------------------
 
 print("Saving output file...")
-amp_month.to_netcdf(OUTPUT_FILE_AMPLITUDE)
-phase_month.to_netcdf(OUTPUT_FILE_PHASE)
+ds_out.to_netcdf(OUTPUT_FILE)
 
 print("Done!")
-print("Output written to:", OUTPUT_FILE_AMPLITUDE)
-print("Output written to:", OUTPUT_FILE_PHASE)
+print("Output written to:", OUTPUT_FILE)

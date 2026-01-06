@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 
+from pytz import utc
 import xarray as xr
 import numpy as np
 from pathlib import Path
 
 def load_and_process_single_file(dataset_name, input ,varname_out="tiwp"):
     """Open one file, detect variable name, rename, compute hour-of-day coordinate."""
-    ds = xr.open_dataset(input, decode_timedelta=True) 
+
+    ds = xr.open_dataset(input) 
 
     ds = ds.rename({"longitude": "lon", "latitude": "lat"})
         # Adjust longitudes to 0-360 if they are now from -180 to 180
@@ -63,7 +65,7 @@ def compute_diurnal_mean(ds, var="pr"):
     diurnal = ds[var].groupby("hour_of_day").mean("time")
     return diurnal.sortby("hour_of_day")
 
-def build_diurnal_feb2020(dataset_name, input_root, output_file):
+def build_diurnal_feb2020(dataset_name, input_root, output_file, utc):
     input_root = Path(input_root)
     print(f"\n=== Building February 2020 diurnal for {dataset_name} ===")
     infile = input_root
@@ -72,19 +74,21 @@ def build_diurnal_feb2020(dataset_name, input_root, output_file):
         return
     print(f"  Using {infile.name}")
 
-    ds = xr.open_dataset(input, decode_timedelta=False) 
-    
     diurnal = load_and_process_single_file(dataset_name, infile, varname_out="tiwp")
     lon_dim = 'longitude' if 'longitude' in diurnal.dims else 'lon'
     hour_dim = 'hour_of_day'
-    pr_local = shift_diurnal_to_local_time(diurnal, hour_dim=hour_dim, lon_dim=lon_dim)
-    final = pr_local.to_dataset(name='tiwp')
+    if utc:
+        tiwp_local = diurnal
+        output_file = output_file.replace(".nc", "_utc.nc")
+    else:
+        tiwp_local = shift_diurnal_to_local_time(diurnal, hour_dim=hour_dim, lon_dim=lon_dim)
+    final = tiwp_local.to_dataset(name='tiwp')
    
     print(f"\n=== Saving final diurnal → {output_file} ===")
     final.to_netcdf(output_file)
     print("Done.")
 
-def build_dyamond_feb2020(model_name, input_root, output_file):
+def build_dyamond_feb2020(model_name, input_root, output_file, utc):
     
     input_root = Path(input_root)
     output_file = Path(output_file)
@@ -97,8 +101,12 @@ def build_dyamond_feb2020(model_name, input_root, output_file):
 
     lon_dim = 'longitude' if 'longitude' in diurnal.dims else 'lon'
     hour_dim = 'hour_of_day'
-    pr_local = shift_diurnal_to_local_time(diurnal, hour_dim=hour_dim, lon_dim=lon_dim)
-    final = pr_local.to_dataset(name='tiwp')
+    if utc:
+        tiwp_local = diurnal
+        output_file = output_file.with_name(output_file.stem + "_utc.nc")
+    else:
+        tiwp_local = shift_diurnal_to_local_time(diurnal, hour_dim=hour_dim, lon_dim=lon_dim)
+    final = tiwp_local.to_dataset(name='tiwp')
     if "leadtime" in final:
         final = final.drop_vars("leadtime")
     print(f"\n=== Saving final diurnal → {output_file} ===")
@@ -107,13 +115,14 @@ def build_dyamond_feb2020(model_name, input_root, output_file):
 
 if __name__ == "__main__":
 
-    '''
+    
     
      # Example for ERA5
     build_diurnal_feb2020(
         dataset_name="ERA5",
         input_root="/data/s5/users/lara/master_thesis/data/ERA5/2020/2020_02_era5_mean_1deg.nc",
         output_file="/data/s5/users/lara/master_thesis/data/ERA5/ERA5_diurnal_feb2020.nc",
+        utc = True,
     )
 
     # Example for CCIC CPCIR TIWP
@@ -121,9 +130,10 @@ if __name__ == "__main__":
         dataset_name="CCIC_TIWP",
         input_root="/data/s5/users/lara/master_thesis/data/ccic/2020/ccic_cpcir_2020_02_monthlymean_1deg_tiwp.nc",
         output_file="/data/s5/users/lara/master_thesis/data/ccic/CCIC_diurnal_feb2020.nc",
+        utc = True,
     )
 
-    '''
+ 
     # # DYAMOND models
     
     dyamond_models = ["ARPEGE", "GEOS", "GSAM", "ICON", "IFS", "MPAS", "GEM", "GFDL", "GRIST"]
@@ -133,6 +143,7 @@ if __name__ == "__main__":
             model_name=model,
             input_root=f"/data/s5/users/lara/master_thesis/data/DYAMOND/{model}/{model}_202002_1deg_tiwp.nc",
             output_file=f"/data/s5/users/lara/master_thesis/data/DYAMOND/{model}_diurnal_feb2020.nc",
+            utc = True,
         )
 
     

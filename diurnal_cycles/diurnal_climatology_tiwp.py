@@ -68,9 +68,10 @@ def build_diurnal_climatology(
         dataset_name,
         input_root,
         output_file,
-        start_year=2018,
-        end_year=2023,
-        monthly_pattern="{year}_{month}.nc",
+        start_year,
+        end_year,
+        monthly_pattern,
+        utc
 ):
     input_root = Path(input_root)
 
@@ -127,14 +128,16 @@ def build_diurnal_climatology(
 
     # Only keep the local time shifted version 
     #varname = list(final.data_vars)[0]
-    lon_dim = 'longitude' if 'longitude' in final.dims else 'lon'
+    lon_dim = 'lon'
     hour_dim = 'hour_of_day'
-    
-    tiwp_local = shift_diurnal_to_local_time(final, hour_dim=hour_dim, lon_dim=lon_dim)
-    #we can decide to keep the UTC version for climatology files, and convert later
-    #tiwp_local = final
-
-    # Remove all variables, keep only the shifted one as 'tiwp'
+    if utc:
+        print("\n=== Keeping diurnal cycle in UTC time ===")
+        tiwp_local = final
+        output_file = output_file.replace(".nc", "_utc.nc")
+    else:
+        print("\n=== Shifting diurnal cycle to local solar time ===")
+        tiwp_local = shift_diurnal_to_local_time(final, hour_dim=hour_dim, lon_dim=lon_dim)
+        # Remove all variables, keep only the shifted one as 'tiwp'
     final = tiwp_local.to_dataset(name='tiwp')
 
     # Remove file if it is already there
@@ -150,29 +153,31 @@ def build_diurnal_climatology(
 
 
 if __name__ == "__main__":
-    
+
     
     # Example for ERA5
     build_diurnal_climatology(
         dataset_name="ERA5",
         input_root="/data/s5/users/lara/master_thesis/data/ERA5/",
-        output_file="/data/s5/users/lara/master_thesis/data/ERA5/ERA5_diurnal_climatology_2018_2023.nc",
+        output_file="/data/s5/users/lara/master_thesis/data/ERA5/ERA5_diurnal_climatology_2018.nc",
         start_year=2018,
-        end_year=2023,
+        end_year=2018,
         monthly_pattern="{year}_{month}_era5_mean_1deg.nc",
+        # Attention here:
+        utc=True
     )
 
     
-    '''
-
     # Example for CCIC CPCIR TIWP
     build_diurnal_climatology(
         dataset_name="CCIC_TIWP",
         input_root="/data/s5/users/lara/master_thesis/data/ccic/",
-        output_file="tiwp_mean",
+        output_file="/data/s5/users/lara/master_thesis/data/ccic/CCIC_TIWP_diurnal_climatology_2018.nc",
         start_year=2018,
-        end_year=2023,
+        end_year=2018,
         monthly_pattern="ccic_cpcir_{year}_{month}_monthlymean_1deg_tiwp.nc",
+        # Attention here:
+        utc=True
     )
 
-    '''
+    
