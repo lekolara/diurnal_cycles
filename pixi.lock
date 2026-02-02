@@ -76,6 +76,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/donfig-0.8.1.post1-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/double-conversion-3.4.0-hecca717_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/eccodes-2.44.0-h83bc92c_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/noarch/emoji-2.15.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/esmf-8.9.0-nompi_h8d4c64c_3.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/executing-2.2.1-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/expat-2.7.3-hecca717_0.conda
@@ -1275,6 +1276,16 @@ packages:
   license_family: Apache
   size: 4666382
   timestamp: 1759850694036
+- conda: https://conda.anaconda.org/conda-forge/noarch/emoji-2.15.0-pyhd8ed1ab_0.conda
+  sha256: 0fd62f7d9f8538b7969b37fbb2907dac8b8ef37d90720edae763d19edd5cc2bd
+  md5: 31db8c55a8dda3abd4625a2880ea3d34
+  depends:
+  - python >=3.10
+  - typing_extensions >=4.7.0
+  license: BSD-3-Clause
+  license_family: BSD
+  size: 470154
+  timestamp: 1758471752878
 - conda: https://conda.anaconda.org/conda-forge/linux-64/esmf-8.9.0-nompi_h8d4c64c_3.conda
   sha256: b2d264f2118ab90f0034eba9c82bdfa9baa7204b20333c1c3c1c6133c8607d0d
   md5: 9102d5f5b8d01fcfa81efec370815772
