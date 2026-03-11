@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+##############################################################################################################
+# Script to fit a harmonic function to the diurnal cycle of HCC and calculate the amplitude 
+# fit and coefficient of determination (R^2) for each grid point and month. 
+
 
 import xarray as xr
 import numpy as np
@@ -14,18 +18,11 @@ def sinfit2d_with_metrics(x, y):
     Fit a 24-hour and 12-hour sinusoidal cycle to the data and calculate metrics.   
     Parameters
     x : numpy array, The x-axis data (time)                         
-    y : xarray Dataarray, The y-axis data (TIWP)    
+    y : xarray Dataarray, The y-axis data (HCC)    
 
     Returns
-    s1 : xarray Dataarray, Sine amplitude for 24-hour component
-    c1 : xarray Dataarray, Cosine amplitude for 24-hour component
-    s2 : xarray Dataarray, Sine amplitude for 12-hour component
-    c2 : xarray Dataarray, Cosine amplitude for 12-hour component
-    coeff_of_determination_map : xarray Dataarray, Coefficient of determination (R^2) for the full fit
-    coeff_of_determination_24_map : xarray Dataarray, Coefficient of determination (R^2) for the 24-hour component
-    coeff_of_determination_12_map : xarray Dataarray, Coefficient of determination (R^2) for the 12-hour component
-    residuals_map : xarray Dataarray, Residuals of the fit
-    R_map : xarray Dataarray, Pearson correlation coefficient of the fit
+    y_fit : xarray DataArray, The fitted values of the harmonic fit
+    coeff_of_determination_map : xarray DataArray, The coefficient of determination (R
 
     Coefficient of determination (R^2) is a measure of how well the model explains the variance in the data.
     It is defined as 1 minus the ratio of the residual sum of squares to the total sum of squares.

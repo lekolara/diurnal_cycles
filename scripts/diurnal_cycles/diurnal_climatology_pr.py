@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+###############################################################################################################
+# Script to compute diurnal climatologies from monthly ERA5 , CCIC and DYAMOND precip data for the full study period
+# Data can be stored in utc or local solar time.
+
 
 import os
 import xarray as xr

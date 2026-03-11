@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+###############################################################################################################
+# Script to compute diurnal climatologies from monthly ERA5 , CCIC and DYAMOND FWP data for February 2020
+# Data can be stored in utc or local solar time.
 
 from pytz import utc
 import xarray as xr

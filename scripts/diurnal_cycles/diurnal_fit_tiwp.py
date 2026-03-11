@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+##############################################################################################################
+# Script to fit a harmonic function to the diurnal cycle of TIWP and calculate the amplitude 
+# fit and coefficient of determination (R^2) for each grid point and month. 
+
 
 import xarray as xr
 import numpy as np
@@ -17,15 +21,8 @@ def sinfit2d_with_metrics(x, y):
     y : xarray Dataarray, The y-axis data (TIWP)    
 
     Returns
-    s1 : xarray Dataarray, Sine amplitude for 24-hour component
-    c1 : xarray Dataarray, Cosine amplitude for 24-hour component
-    s2 : xarray Dataarray, Sine amplitude for 12-hour component
-    c2 : xarray Dataarray, Cosine amplitude for 12-hour component
-    coeff_of_determination_map : xarray Dataarray, Coefficient of determination (R^2) for the full fit
-    coeff_of_determination_24_map : xarray Dataarray, Coefficient of determination (R^2) for the 24-hour component
-    coeff_of_determination_12_map : xarray Dataarray, Coefficient of determination (R^2) for the 12-hour component
-    residuals_map : xarray Dataarray, Residuals of the fit
-    R_map : xarray Dataarray, Pearson correlation coefficient of the fit
+    y_fit : xarray DataArray, The fitted values of the harmonic fit
+    coeff_of_determination_map : xarray DataArray, The coefficient of determination (R^2) for each grid point
 
     Coefficient of determination (R^2) is a measure of how well the model explains the variance in the data.
     It is defined as 1 minus the ratio of the residual sum of squares to the total sum of squares.
@@ -108,7 +105,6 @@ def fitted_amplitude(y_fit, relative = None):
     if relative:
         mean = y_fit.mean(dim = 'hour_of_day').values
         A_total_ptp = A_total_ptp/mean
-         # Find peak time
     
     
     return A_total_ptp
@@ -118,139 +114,148 @@ def fitted_amplitude(y_fit, relative = None):
 # USER SETTINGS
 # --------------------------------------------------
 # CCIC
-# INPUT_FILE = "/data/s5/users/lara/master_thesis/data/ccic/CCIC_TIWP_diurnal_climatology_2018_2023_utc.nc"
+# INPUT_FILES = ["/data/s5/users/lara/master_thesis/data/ccic/CCIC_TIWP_diurnal_climatology_2018_2023_utc.nc"]
 
 # VAR_NAME = "tiwp"          # tiwp variable
 # RELATIVE = False        # True -> normalize by monthly mean
 
 
 # if RELATIVE:
-#     OUTPUT_FILE = f"/data/s5/users/lara/master_thesis/data/ccic/CCIC_diurnal_fit_utc_relative_new.nc"
+#     OUTPUT_FILES = [f"/data/s5/users/lara/master_thesis/data/ccic/CCIC_diurnal_fit_utc_relative_new.nc" for _ in INPUT_FILES]
 # else:
-#     OUTPUT_FILE = f"/data/s5/users/lara/master_thesis/data/ccic/CCIC_diurnal_fit_utc_new.nc"
+#     OUTPUT_FILES = [f"/data/s5/users/lara/master_thesis/data/ccic/CCIC_diurnal_fit_utc_new.nc" for _ in INPUT_FILES]
 
 
 # ERA5
-INPUT_FILE = "/data/s5/users/lara/master_thesis/data/ERA5/ERA5_diurnal_climatology_2018_2023_utc.nc"
+# INPUT_FILES = ["/data/s5/users/lara/master_thesis/data/ERA5/ERA5_diurnal_climatology_2018_2023_utc.nc"]
 
+# VAR_NAME = "tiwp"          # tiwp variable
+# RELATIVE = False        # True -> normalize by monthly mean
+
+
+# if RELATIVE:
+#     OUTPUT_FILES = [f"/data/s5/users/lara/master_thesis/data/ERA5/ERA5_diurnal_fit_utc_relative_new.nc" for _ in INPUT_FILES]
+# else:
+#     OUTPUT_FILES = [f"/data/s5/users/lara/master_thesis/data/ERA5/ERA5_diurnal_fit_utc_new.nc" for _ in INPUT_FILES]
+
+# DYAMOND MODELS
+MODELS = ["ARPEGE", "GEOS", "GSAM", "ICON", "IFS", "MPAS", "GEM", "GFDL", "GRIST"]
+INPUT_FILES = [f"/data/s5/users/lara/master_thesis/data/DYAMOND/{model}_diurnal_feb2020_utc.nc" for model in MODELS]
 VAR_NAME = "tiwp"          # tiwp variable
-RELATIVE = False        # True -> normalize by monthly mean
-
-
-if RELATIVE:
-    OUTPUT_FILE = f"/data/s5/users/lara/master_thesis/data/ERA5/ERA5_diurnal_fit_utc_relative_new.nc"
-else:
-    OUTPUT_FILE = f"/data/s5/users/lara/master_thesis/data/ERA5/ERA5_diurnal_fit_utc_new.nc"
-
+RELATIVE = False        # True -> normalize by monthly mean             
+OUTPUT_FILES = [f"/data/s5/users/lara/master_thesis/data/DYAMOND/{model}_diurnal_fit_feb2020_utc.nc" for model in MODELS]
 
 # --------------------------------------------------
 # LOAD DATA
 # --------------------------------------------------
 
-print("Opening file...")
-ds = xr.open_dataset(INPUT_FILE)
-da = ds[VAR_NAME]   # DataArray (month, hour_of_day, lon, lat)
-da = da.where(da > 0)  # Mask negative values
+for INPUT_FILE, OUTPUT_FILE in zip(INPUT_FILES, OUTPUT_FILES):              
+    print("Opening file...")
+    ds = xr.open_dataset(INPUT_FILE)
+    da = ds[VAR_NAME]   # DataArray (month, hour_of_day, lon, lat)
+    da = da.where(da > 0)  # Mask negative values
 
-# Reorder dims for your fitter:
-# (time, lat, lon)
-da = da.transpose("month", "hour_of_day", "lat", "lon")
+    # Reorder dims for your fitter:
+    # (time, lat, lon)
+    if 'month' not in da.dims:
+        da = da.expand_dims('month')
+    da = da.transpose('month', 'hour_of_day', 'lat', 'lon')
 
-x = np.arange(24)
+    x = np.arange(24)
 
-monthly_amplitudes = []
-monthly_coefficient_of_determination = []
-monthly_fitted_values = []
+    monthly_amplitudes = []
+    monthly_coefficient_of_determination = []
+    monthly_fitted_values = []
 
-# --------------------------------------------------
-# MONTHLY LOOP
-# --------------------------------------------------
+    # --------------------------------------------------
+    # MONTHLY LOOP
+    # --------------------------------------------------
 
-print("Computing monthly amplitudes...")
+    print("Computing monthly amplitudes...")
 
-months = da.month
+    months = da.month
 
-for m in months.values:
-    print(f"  Month {m}")
+    for m in months.values:
+        print(f"  Month {m}")
 
-    # Select single month
-    y = da.sel(month=m)    # (hour_of_day, lat, lon)
+        # Select single month
+        y = da.sel(month=m)    # (hour_of_day, lat, lon)
 
-    # --- Harmonic fit ---
-    y_fit, coeff_of_determination_map = sinfit2d_with_metrics(x, y)
+        # --- Harmonic fit ---
+        y_fit, coeff_of_determination_map = sinfit2d_with_metrics(x, y)
 
-    # --- Amplitudes ---
-    A_total, t_peak = fitted_amplitude(
-        y_fit, relative=RELATIVE
-    )
+        # --- Amplitudes ---
+        A_total = fitted_amplitude(
+            y_fit, relative=RELATIVE
+        )
 
-    # Store *total* diurnal amplitude
-    monthly_amplitudes.append(A_total)
-    monthly_coefficient_of_determination.append(coeff_of_determination_map)
-    monthly_fitted_values.append(y_fit)
-# --------------------------------------------------
-# BUILD OUTPUT DATASET
-# --------------------------------------------------
+        # Store *total* diurnal amplitude
+        monthly_amplitudes.append(A_total)
+        monthly_coefficient_of_determination.append(coeff_of_determination_map)
+        monthly_fitted_values.append(y_fit)
+    # --------------------------------------------------
+    # BUILD OUTPUT DATASET
+    # --------------------------------------------------
 
-amp_month = xr.concat(monthly_amplitudes, dim="month")
-amp_month = amp_month.assign_coords(month=months)
+    amp_month = xr.concat(monthly_amplitudes, dim="month")
+    amp_month = amp_month.assign_coords(month=months)
 
-amp_month.name = "diurnal_amplitude"
+    amp_month.name = "diurnal_amplitude"
 
-amp_month.attrs = {
-    "long_name": "Peak-to-peak diurnal tiwp amplitude",
-    "units": "kg/m^2" if not RELATIVE else "fraction of mean",
-    "description": "24h+12h harmonic fit peak-to-peak amplitude",
-    "source_file": INPUT_FILE,
-}
-
-
-coeff_of_determination_month = xr.concat(monthly_coefficient_of_determination, dim="month")
-coeff_of_determination_month = coeff_of_determination_month.assign_coords(month=months)
-coeff_of_determination_month.name = "coefficient_of_determination"
-coeff_of_determination_month.attrs = {
-    "long_name": "Coefficient of determination (R^2) of diurnal tiwp fit",
-    "units": "1",
-    "description": "Coefficient of determination (R^2) for 24h+12h harmonic fit",
-    "source_file": INPUT_FILE,
-}
+    amp_month.attrs = {
+        "long_name": "Peak-to-peak diurnal tiwp amplitude",
+        "units": "kg/m^2" if not RELATIVE else "fraction of mean",
+        "description": "24h+12h harmonic fit peak-to-peak amplitude",
+        "source_file": INPUT_FILE,
+    }
 
 
-fitted_values_month = xr.concat(monthly_fitted_values, dim="month")
-fitted_values_month = fitted_values_month.assign_coords(month=months)
-fitted_values_month.name = "diurnal_fit_values"
-fitted_values_month.attrs = {
-    "long_name": "Fitted values of diurnal tiwp fit",
-    "units": "kg/m^2" if not RELATIVE else "fraction of mean",
-    "description": "Fitted values for 24h+12h harmonic fit",
-    "source_file": INPUT_FILE,
-}
-
-# BUILD FINAL DATASET
-
-ds_out = xr.Dataset({
-    "diurnal_amplitude": amp_month,
-    "diurnal_fit_coeff_of_determination": coeff_of_determination_month,
-    "diurnal_fit_values": fitted_values_month
-})
+    coeff_of_determination_month = xr.concat(monthly_coefficient_of_determination, dim="month")
+    coeff_of_determination_month = coeff_of_determination_month.assign_coords(month=months)
+    coeff_of_determination_month.name = "coefficient_of_determination"
+    coeff_of_determination_month.attrs = {
+        "long_name": "Coefficient of determination (R^2) of diurnal tiwp fit",
+        "units": "1",
+        "description": "Coefficient of determination (R^2) for 24h+12h harmonic fit",
+        "source_file": INPUT_FILE,
+    }
 
 
-# --------------------------------------------------
-# SAVE TO NETCDF
-# --------------------------------------------------
-# If output file exists, remove it
+    fitted_values_month = xr.concat(monthly_fitted_values, dim="month")
+    fitted_values_month = fitted_values_month.assign_coords(month=months)
+    fitted_values_month.name = "diurnal_fit_values"
+    fitted_values_month.attrs = {
+        "long_name": "Fitted values of diurnal tiwp fit",
+        "units": "kg/m^2" if not RELATIVE else "fraction of mean",
+        "description": "Fitted values for 24h+12h harmonic fit",
+        "source_file": INPUT_FILE,
+    }
 
-for file in [OUTPUT_FILE]:
-    if os.path.exists(file):
-        print(f"Removing existing file: {file}")
-        os.remove(file)
+    # BUILD FINAL DATASET
 
-print("Saving output file...")
-# amp_month.to_netcdf(OUTPUT_FILE_AMPLITUDE)
-# phase_month.to_netcdf(OUTPUT_FILE_PHASE)
-ds_out.to_netcdf(OUTPUT_FILE)
+    ds_out = xr.Dataset({
+        "diurnal_amplitude": amp_month,
+        "diurnal_fit_coeff_of_determination": coeff_of_determination_month,
+        "diurnal_fit_values": fitted_values_month
+    })
 
-print("Done!")
-# print("Output written to:", OUTPUT_FILE_AMPLITUDE)
-# print("Output written to:", OUTPUT_FILE_PHASE)
-print("Output written to:", OUTPUT_FILE)
+
+    # --------------------------------------------------
+    # SAVE TO NETCDF
+    # --------------------------------------------------
+    # If output file exists, remove it
+
+    for file in [OUTPUT_FILE]:
+        if os.path.exists(file):
+            print(f"Removing existing file: {file}")
+            os.remove(file)
+
+    print("Saving output file...")
+    # amp_month.to_netcdf(OUTPUT_FILE_AMPLITUDE)
+    # phase_month.to_netcdf(OUTPUT_FILE_PHASE)
+    ds_out.to_netcdf(OUTPUT_FILE)
+
+    print("Done!")
+    # print("Output written to:", OUTPUT_FILE_AMPLITUDE)
+    # print("Output written to:", OUTPUT_FILE_PHASE)
+    print("Output written to:", OUTPUT_FILE)

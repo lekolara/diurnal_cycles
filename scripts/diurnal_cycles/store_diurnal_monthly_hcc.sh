@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+
+############################################################################################################
+# Script to calculate diurnal means from monthly ERA5 HCC and CCIC HCC data and merge them into a single file per month 
+# for every year, in hourly resolution.
+
 set -euo pipefail
 
 #ERA5
@@ -10,7 +15,7 @@ DATASET="ERA5"
 DATASET_TYPE="monthly"    # daily or monthly
 
 START_YEAR=2018
-END_YEAR=2018
+END_YEAR=2023
 
 for (( year=${START_YEAR}; year<=${END_YEAR}; year++ )); do
     

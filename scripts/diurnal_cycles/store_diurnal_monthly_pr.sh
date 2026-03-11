@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+############################################################################################################
+# Script to calculate diurnal means from monthly ERA5 precip and IMERG data and merge them into a single file per month 
+# for every year, in hourly resolution.
+
 set -euo pipefail
 
 #IMERG
