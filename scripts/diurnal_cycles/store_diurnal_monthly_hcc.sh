@@ -12,10 +12,9 @@ INPUT_BASE="/scratch/leko/HCC/ERA5/ERA5_hcc_1_deg"
 # Output directory where diurnal averages will be stored
 OUTPUT_ROOT="/scratch/leko/HCC/ERA5/ERA5_1_deg_diurnal"
 DATASET="ERA5"
-DATASET_TYPE="monthly"    # daily or monthly
 
 START_YEAR=2018
-END_YEAR=2023
+END_YEAR=2018
 
 for (( year=${START_YEAR}; year<=${END_YEAR}; year++ )); do
     

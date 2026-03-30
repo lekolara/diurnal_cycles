@@ -41,7 +41,7 @@ for (( year=${START_YEAR}; year<=${END_YEAR}; year++ )); do
 
         if [ "${DATASET_TYPE}" = "monthly" ]; then
             # try 2018_01.nc or 201801.nc
-            # Then it's ERA5
+            # Then it's ERA5, and hourly resolution
             f1="${YEAR_IN}/${year}_${month}.nc"
             f2="${YEAR_IN}/${year}${month}.nc"
 
@@ -68,7 +68,7 @@ for (( year=${START_YEAR}; year<=${END_YEAR}; year++ )); do
 
         elif [ "${DATASET_TYPE}" = "daily" ]; then
             # daily files like 20180724.nc
-            # Then it's IMERG
+            # Then it's IMERG, and 30-min resolution
             filelist=$(ls ${YEAR_IN}/${year}${month}??.nc 2>/dev/null || true)
 
             if [ -z "${filelist}" ]; then

@@ -115,15 +115,14 @@ def fitted_amplitude(y_fit, relative = None):
 # --------------------------------------------------
 
 # CCIC
-INPUT_FILE = "/scratch/leko/HCC/HCC_diurnal_climatology_2018_2023_utc.nc"
+#INPUT_FILE = "/scratch/leko/HCC/HCC_diurnal_climatology_2018_utc.nc" # old HCC
+INPUT_FILE = "/scratch/leko/HCC/HCC_diurnal_climatology_2018_new_utc.nc" # new HCC with optimal threshold
 
 VAR_NAME = "hcc"          # precipitation variable
 RELATIVE = False        # True -> normalize by monthly mean
+NEW = True             # whether to use new HCC with optimal threshold or old HCC with all thresholds
 
-if RELATIVE:
-    OUTPUT_FILE = f"/scratch/leko/HCC/CCIC_HCC_diurnal_fit_utc_relative_new.nc"
-else:
-    OUTPUT_FILE = f"/scratch/leko/HCC/CCIC_HCC_diurnal_fit_utc_new.nc"
+OUTPUT_FILE = f"/scratch/leko/HCC/CCIC_HCC_diurnal_fit_utc" + "_new"*NEW + "relative"*RELATIVE + ".nc"
 
 # ERA5
 # RELATIVE = False 

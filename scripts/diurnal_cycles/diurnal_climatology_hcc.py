@@ -142,8 +142,10 @@ if __name__ == "__main__":
     # Example for ccic
     build_diurnal_climatology(
         dataset_name="HCC",
-        input_root="/scratch/leko/HCC/hcc_2018_all.nc",
-        output_file="/scratch/leko/HCC/HCC_diurnal_climatology_2018.nc",
+        input_root="/scratch/leko/HCC/hcc_2018_all.nc", # old HCC
+        #input_root= '/scratch/amell/hcc_paper/hcc_2018_opt.nc', # new HCC with optimal threshold
+        output_file="/scratch/leko/HCC/HCC_diurnal_climatology_2018.nc", # old HCC
+        #output_file="/scratch/leko/HCC/HCC_diurnal_climatology_2018_new.nc", # new HCC with optimal threshold
         utc=True
     )
     
