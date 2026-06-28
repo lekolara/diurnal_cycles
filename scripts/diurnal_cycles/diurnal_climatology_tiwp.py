@@ -10,7 +10,7 @@ import numpy as np
 from pathlib import Path
 
 
-def load_and_process_single_file(infile, dataset_name, varname_out="tiwp"):
+def load_and_process_single_file(infile, dataset_name, half_hourly = False, varname_out="tiwp"):
     """Open one file, detect variable name, rename, compute hour-of-day coordinate."""
     ds = xr.open_dataset(infile, decode_timedelta=True)
 
@@ -29,15 +29,16 @@ def load_and_process_single_file(infile, dataset_name, varname_out="tiwp"):
         ds = ds.where(ds[var]>=0)
         ds = ds.rename({var: varname_out})
         da_hourly = ds
-        '''
-        time_array = ds.tiwp.hour_of_day.values
-        hours = (time_array / np.timedelta64(1, 'h')).astype(int) 
-        # Replace the coordinate
-        da = ds.assign_coords(hour_of_day=hours)
-        # Collapse the 30-min bins into 24 hourly bins
-        da_hourly = da.groupby('hour_of_day').mean()
-        da_hourly=da_hourly.sortby("hour_of_day").tiwp
-        '''
+
+        if not half_hourly:
+            time_array = ds.tiwp.hour_of_day.values
+            hours = (time_array / np.timedelta64(1, 'h')).astype(int) 
+            # Replace the coordinate
+            da = ds.assign_coords(hour_of_day=hours)
+            # Collapse the 30-min bins into 24 hourly bins
+            da_hourly = da.groupby('hour_of_day').mean()
+            da_hourly=da_hourly.sortby("hour_of_day").tiwp
+        
 
     elif dataset_name == "ERA5":
         if "total_column_cloud_ice_water" in ds and "total_column_snow_water" in ds:
@@ -55,6 +56,8 @@ def shift_diurnal_to_local_time(da, hour_dim="hour_of_day", lon_dim="lon"):
     Supports both hourly (24 steps) and half-hourly (48 steps) data.
     Works for DataArray with shape (month, hour_of_day, lat, lon).
     Returns a DataArray with a new coordinate 'hour_of_day' (local time).
+
+    I learned it it better to store data in UTC and shift it later.
     """
     nsteps = da[hour_dim].size
     deg_per_step = 360 / nsteps
@@ -77,6 +80,7 @@ def build_diurnal_climatology(
         start_year,
         end_year,
         monthly_pattern,
+        half_hourly,
         utc
 ):
     input_root = Path(input_root)
@@ -94,7 +98,7 @@ def build_diurnal_climatology(
         for year in range(start_year, end_year + 1):
             yr = str(year)
 
-            # File candidates
+            # Files
             f1 = input_root / yr / monthly_pattern.format(year=yr, month=mm)
 
             if f1.exists():
@@ -105,7 +109,7 @@ def build_diurnal_climatology(
 
             print(f"  Using {infile.name}")
 
-            diurnal = load_and_process_single_file(infile, dataset_name)
+            diurnal = load_and_process_single_file(infile, dataset_name, half_hourly=half_hourly)
 
             # Compute year-specific diurnal mean
             
@@ -116,7 +120,7 @@ def build_diurnal_climatology(
             print(f"  No data for month {mm}, skipping.")
             continue
 
-        # Stack all years (set join explicitly to avoid future xarray default changes)
+        # Stack all years (set join explicitly)
         ds_month = xr.concat(yearly_diurnals, dim="year", join="outer")
 
         # Convert to climatological mean
@@ -136,8 +140,7 @@ def build_diurnal_climatology(
     # Combine all 12 months along a "month" dimension
     final = xr.concat(monthly_clims, dim="month")
 
-    # Only keep the local time shifted version 
-    #varname = list(final.data_vars)[0]
+    
     lon_dim = 'lon'
     hour_dim = 'hour_of_day'
     if utc:
@@ -150,6 +153,8 @@ def build_diurnal_climatology(
         # Remove all variables, keep only the shifted one as 'tiwp'
         final = tiwp_local.to_dataset(name='tiwp')
 
+    if half_hourly:
+        output_file = output_file.replace(".nc", "_30min.nc")
     # Remove file if it is already there
     if Path(output_file).exists():
         print(f"  NOTE: Output file {output_file} exists, removing.")
@@ -163,16 +168,17 @@ def build_diurnal_climatology(
 
 
 if __name__ == "__main__":
-
     '''
+    
     # Example for ERA5
     build_diurnal_climatology(
         dataset_name="ERA5",
-        input_root="/data/s5/users/lara/master_thesis/data/ERA5/",
-        output_file="/data/s5/users/lara/master_thesis/data/ERA5/ERA5_diurnal_climatology_2018_2019.nc",
+        input_root="/data/s5/users/lara/master_thesis/data/ERA5/diurnal_data",
+        output_file="/data/s5/users/lara/master_thesis/data/ERA5/ERA5_diurnal_climatology_2018_2023.nc",
         start_year=2018,
-        end_year=2019,
+        end_year=2023,
         monthly_pattern="{year}_{month}_era5_mean_1deg.nc",
+        half_hourly=False,
         # Attention here:
         utc=True
     )
@@ -181,13 +187,14 @@ if __name__ == "__main__":
     # Example for CCIC CPCIR TIWP
     build_diurnal_climatology(
         dataset_name="CCIC_TIWP",
-        input_root="/data/s5/users/lara/master_thesis/data/ccic/",
-        output_file="/data/s5/users/lara/master_thesis/data/ccic/30min/CCIC_TIWP_diurnal_climatology_2018_2023.nc",
+        input_root="/data/s5/users/lara/master_thesis/data/ccic/diurnal_data",
+        output_file="/data/s5/users/lara/master_thesis/data/ccic/CCIC_TIWP_diurnal_climatology_2018_2023.nc",
         start_year=2018,
         end_year=2023,
         monthly_pattern="ccic_cpcir_{year}_{month}_monthlymean_1deg_tiwp.nc",
+        half_hourly=False,
         # Attention here:
         utc=True
     )
-
+    
     

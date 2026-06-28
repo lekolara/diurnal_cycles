@@ -2,10 +2,9 @@
 import numpy as np
 from pathlib import Path
 import xarray as xr
-
-# -------- CONFIG --------
-in_dir  = Path("/scratch/leko/DYAMOND/data/latlon_grid_1deg/gSAM/gSAM_accumulated")    # old GSAM folder
-out_dir = Path("/scratch/leko/DYAMOND/data/latlon_grid_1deg/gSAM/")
+# gSAM precipitation is stored as cumulative values, but we want instantaneous rates. 
+in_dir  = Path("/scratch/leko/DYAMOND_PRECIP/data/latlon_grid_1deg/gSAM/gSAM_accumulated")    # old GSAM folder
+out_dir = Path("/scratch/leko/DYAMOND_PRECIP/data/latlon_grid_1deg/gSAM/")
 
 var = "pr"   # precipitation variable name
 

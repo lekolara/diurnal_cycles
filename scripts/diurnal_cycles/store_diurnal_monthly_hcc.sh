@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
 
 ############################################################################################################
-# Script to calculate diurnal means from monthly ERA5 HCC and CCIC HCC data and merge them into a single file per month 
+# Script to calculate diurnal means from monthly ERA5 HCC merge them into a single file per month 
 # for every year, in hourly resolution.
 
 set -euo pipefail
 
 #ERA5
-# Input base directory (your ERA5 data)
-INPUT_BASE="/scratch/leko/HCC/ERA5/ERA5_hcc_1_deg"
+# Input base directory
+INPUT_BASE="/scratch/leko/ERA5/HCC/ERA5_hcc_1_deg"
 # Output directory where diurnal averages will be stored
-OUTPUT_ROOT="/scratch/leko/HCC/ERA5/ERA5_1_deg_diurnal"
+OUTPUT_ROOT="/scratch/leko/ERA5/HCC/ERA5_1_deg_diurnal"
 DATASET="ERA5"
 
 START_YEAR=2018

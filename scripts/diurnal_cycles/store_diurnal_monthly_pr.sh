@@ -4,21 +4,22 @@
 # for every year, in hourly resolution.
 
 set -euo pipefail
+# Uncomment the dataset you want to process
 
-#IMERG
-INPUT_BASE="/scratch/leko/IMERG/IMERG_1_deg"  
-#OUTPUT_ROOT="/scratch/leko/IMERG/IMERG_1_deg_diurnal"        
-OUTPUT_ROOT="/scratch/leko/IMERG/IMERG_1_deg_diurnal/30min"
-DATASET="IMERG"
-DATASET_TYPE="daily"      # daily or monthly
+# #IMERG
+# INPUT_BASE="/scratch/leko/IMERG/IMERG_1_deg"  
+# #OUTPUT_ROOT="/scratch/leko/IMERG/IMERG_1_deg_diurnal"        
+# OUTPUT_ROOT="/scratch/leko/IMERG/IMERG_1_deg_diurnal/30min"
+# DATASET="IMERG"
+# DATASET_TYPE="daily"      # daily or monthly
 
-# #ERA5
-# # Input base directory (your ERA5 data)
-# INPUT_BASE="/scratch/leko/ERA5/ERA5_1_deg"
-# # Output directory where diurnal averages will be stored
-# OUTPUT_ROOT="/scratch/leko/ERA5/ERA5_1_deg_diurnal"
-# DATASET="ERA5"
-# DATASET_TYPE="monthly"    # daily or monthly
+#ERA5
+# Input base directory (your ERA5 data)
+INPUT_BASE="/scratch/leko/ERA5/precip/ERA5_1_deg"
+# Output directory where diurnal averages will be stored
+OUTPUT_ROOT="/scratch/leko/ERA5/precip/ERA5_1_deg_diurnal/diurnal_data"
+DATASET="ERA5"
+DATASET_TYPE="monthly"    # daily or monthly
 
 START_YEAR=2018
 END_YEAR=2023

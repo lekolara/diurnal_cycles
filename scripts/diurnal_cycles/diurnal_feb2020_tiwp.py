@@ -144,8 +144,8 @@ if __name__ == "__main__":
     for model in dyamond_models:
         build_dyamond_feb2020(
             model_name=model,
-            input_root=f"/data/s5/users/lara/master_thesis/data/DYAMOND/{model}/{model}_202002_1deg_tiwp.nc",
-            output_file=f"/data/s5/users/lara/master_thesis/data/DYAMOND/{model}_diurnal_feb2020.nc",
+            input_root=f"/data/s5/users/lara/master_thesis/data/DYAMOND_TIWP/{model}/{model}_202002_1deg_tiwp.nc",
+            output_file=f"/data/s5/users/lara/master_thesis/data/DYAMOND_TIWP/{model}_diurnal_feb2020.nc",
             utc = True,
         )
 

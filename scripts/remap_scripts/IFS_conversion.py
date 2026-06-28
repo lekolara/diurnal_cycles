@@ -3,10 +3,10 @@ import numpy as np
 from pathlib import Path
 import xarray as xr
 
-# The way xr.diff works is that unfortunately the output array has one less time step.
+# The way xr.diff works is that the output array has one less time step.
 # -------- CONFIG --------
-in_dir  = Path("/scratch/leko/DYAMOND/data/latlon_grid_1deg/IFS/IFS_accumulated")    # old IFS folder
-out_dir = Path("/scratch/leko/DYAMOND/data/latlon_grid_1deg/IFS/")
+in_dir  = Path("/scratch/leko/DYAMOND_PRECIP/data/latlon_grid_1deg/IFS/IFS_accumulated")    # old IFS folder
+out_dir = Path("/scratch/leko/DYAMOND_PRECIP/data/latlon_grid_1deg/IFS/")
 
 var = "pr"   # precipitation variable name
 

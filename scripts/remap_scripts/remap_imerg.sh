@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 
 # This script performs a conservative remapping on all IMERG data. It also
-# merge all files from the same day into one.
+# merges all files from the same day into one.
 #
 # Author: Nils Müller
 # E-Mail: nils.n.mueller@gmail.com
 
 set -euo pipefail
 
-data_folder=$IMERG_DATA_FOLDER/$(basename -s .txt $TARGET_GRID)
+data_folder=$IMERG_DATA_FOLDER/IMERG_1_deg
 mkdir -p $data_folder
 
 if [ ! -f $TARGET_GRID ]

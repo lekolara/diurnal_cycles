@@ -11,7 +11,7 @@ from pathlib import Path
 import pandas as pd
 
 
-def load_and_process_single_file(filename, varname_out="pr", multiply_era5=False):
+def load_and_process_single_file(filename, varname_out="pr", half_hourly=False, multiply_era5=False):
     """Open one file, detect variable name, rename, compute hour-of-day coordinate."""
     ds = xr.open_dataset(filename)
 
@@ -33,17 +33,20 @@ def load_and_process_single_file(filename, varname_out="pr", multiply_era5=False
     # Multiply by 1000 for ERA5 if requested 
     if multiply_era5:
         ds[varname_out] = ds[varname_out] * 1000
-    '''
+    
     # Ensure time is decoded
     if not np.issubdtype(ds.time.dtype, np.datetime64):
         ds["time"] = xr.decode_cf(ds).time
 
     # Hour-of-day (works for 30-min or 1-h data)
-    hours = ds["time"].dt.hour 
-    ds = ds.assign_coords(hour_of_day=("time", hours.data))
-    '''
-    half_hours = pd.to_timedelta(ds['time'].dt.hour, unit='h') + pd.to_timedelta(ds['time'].dt.minute, unit='m')
-    ds = ds.assign_coords(hour_of_day=("time", half_hours))
+
+    if half_hourly:
+    
+        half_hours = pd.to_timedelta(ds['time'].dt.hour, unit='h') + pd.to_timedelta(ds['time'].dt.minute, unit='m')
+        ds = ds.assign_coords(hour_of_day=("time", half_hours))
+    else:
+        hours = ds["time"].dt.hour 
+        ds = ds.assign_coords(hour_of_day=("time", hours.data))
     
 
     return ds
@@ -85,6 +88,7 @@ def build_diurnal_climatology(
         start_year,
         end_year,
         monthly_pattern,
+        half_hourly,
         utc
 ):
     input_root = Path(input_root)
@@ -116,7 +120,7 @@ def build_diurnal_climatology(
 
             # Load + rename + add hour_of_day
             multiply_era5 = dataset_name.upper() == "ERA5"
-            ds = load_and_process_single_file(infile, multiply_era5=multiply_era5)
+            ds = load_and_process_single_file(infile, half_hourly=half_hourly, multiply_era5=multiply_era5)
 
             # Compute year-specific diurnal mean
             diurnal = compute_diurnal_mean(ds)
@@ -157,6 +161,9 @@ def build_diurnal_climatology(
         # # Remove all variables, keep only the shifted one as 'pr'
     final = pr_local.to_dataset(name='pr')
 
+    if half_hourly:
+        output_file = output_file.replace(".nc", "_30min.nc")
+
     # Reorder dimensions to (month, hour_of_day, lat, lon)
     final = final.transpose("month", "hour_of_day", "lat", "lon")
 
@@ -178,16 +185,17 @@ def build_diurnal_climatology(
 
 
 if __name__ == "__main__":
-    
     '''
+    
     # Example for ERA5
     build_diurnal_climatology(
         dataset_name="ERA5",
-        input_root="/scratch/leko/ERA5/ERA5_1_deg_diurnal",
-        output_file="/scratch/leko/ERA5/ERA5_1_deg_diurnal/ERA5_diurnal_climatology_2018.nc",
+        input_root="/scratch/leko/ERA5/precip/ERA5_1_deg_diurnal/diurnal_data",
+        output_file="/scratch/leko/ERA5/precip/ERA5_1_deg_diurnal/ERA5_diurnal_climatology_2018_2023.nc",
         start_year=2018,
-        end_year=2018,
+        end_year=2023,
         monthly_pattern="{year}_{month}_ERA5_diurnal_mean.nc",
+        half_hourly=False,
         utc=True
     )
     
@@ -195,14 +203,15 @@ if __name__ == "__main__":
     # Example for IMERG 
     build_diurnal_climatology(
         dataset_name="IMERG",
-        input_root="/scratch/leko/IMERG/IMERG_1_deg_diurnal/30min/",
-        output_file="/scratch/leko/IMERG/IMERG_1_deg_diurnal/30min/IMERG_diurnal_climatology_2018_2023.nc",
+        input_root="/scratch/leko/IMERG/IMERG_1_deg_diurnal/diurnal_data/",
+        output_file="/scratch/leko/IMERG/IMERG_1_deg_diurnal/IMERG_diurnal_climatology_2018_2023.nc",
         start_year=2018,
         end_year=2023,
         monthly_pattern="{year}_{month}_IMERG_diurnal_mean.nc",
+        half_hourly=False,
         utc=True
     )
-
+    
     
     
 

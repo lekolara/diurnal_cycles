@@ -107,8 +107,8 @@ if __name__ == "__main__":
     # ERA5
     build_diurnal_feb2020(
         dataset_name="ERA5",
-        input_root="/scratch/leko/ERA5/ERA5_1_deg_diurnal/2020",
-        output_file="/scratch/leko/ERA5/ERA5_1_deg_diurnal/ERA5_diurnal_feb2020.nc",
+        input_root="/scratch/leko/ERA5/precip/ERA5_1_deg_diurnal/diurnal_data/2020",
+        output_file="/scratch/leko/ERA5/precip/ERA5_1_deg_diurnal/ERA5_diurnal_feb2020.nc",
         infile_name="2020_02_ERA5_diurnal_mean.nc",
         multiply=True,
         utc = True,
@@ -116,7 +116,7 @@ if __name__ == "__main__":
     # IMERG
     build_diurnal_feb2020(
         dataset_name="IMERG",
-        input_root="/scratch/leko/IMERG/IMERG_1_deg_diurnal/2020",
+        input_root="/scratch/leko/IMERG/IMERG_1_deg_diurnal/diurnal_data/2020",
         output_file="/scratch/leko/IMERG/IMERG_1_deg_diurnal/IMERG_diurnal_feb2020.nc",
         infile_name="2020_02_IMERG_diurnal_mean.nc",
         multiply=False,
@@ -126,13 +126,12 @@ if __name__ == "__main__":
     # DYAMOND models
     #
     dyamond_models = ["ARPEGE", "GEOS", "gSAM", "ICON", "IFS", "SHiELD"]
-    #dyamond_models = ["ARPEGE"]
 
     for model in dyamond_models:
         build_dyamond_feb2020(
             model_name=model,
             input_root=f"/scratch/nilsmu/DYAMOND_precipitation/data/latlon_grid_1deg/{model}",
-            output_file=f"/scratch/leko/DYAMOND/diurnal/{model}_diurnal_feb2020.nc",
+            output_file=f"/scratch/leko/DYAMOND_PRECIP/diurnal/{model}_diurnal_feb2020.nc",
             utc = True,
         )
 

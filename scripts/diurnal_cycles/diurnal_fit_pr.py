@@ -111,7 +111,7 @@ def fitted_amplitude(y_fit, relative = None):
 
 
 # --------------------------------------------------
-# USER SETTINGS
+# UNCOMMENT THE FOLLOWING BLOCKS TO RUN FOR DIFFERENT DATASETS
 # --------------------------------------------------
 
 # # IMERG
@@ -121,33 +121,44 @@ def fitted_amplitude(y_fit, relative = None):
 # RELATIVE = False        # True -> normalize by monthly mean
 
 # if RELATIVE:
-#     OUTPUT_FILES = [f"/scratch/leko/IMERG/IMERG_1_deg_diurnal/IMERG_diurnal_fit_utc_relative_new.nc" for _ in INPUT_FILES]
+#     OUTPUT_FILES = [f"/scratch/leko/IMERG/IMERG_1_deg_diurnal/IMERG_diurnal_fit_utc_relative.nc" for _ in INPUT_FILES]
 # else:
-#     OUTPUT_FILES = [f"/scratch/leko/IMERG/IMERG_1_deg_diurnal/IMERG_diurnal_fit_utc_new.nc" for _ in INPUT_FILES]
+#     OUTPUT_FILES = [f"/scratch/leko/IMERG/IMERG_1_deg_diurnal/IMERG_diurnal_fit_utc.nc" for _ in INPUT_FILES]
 
-#ERA5
+# #ERA5
 # RELATIVE = False 
 # VAR_NAME = "pr"
 
-# INPUT_FILES = ["/scratch/leko/ERA5/ERA5_1_deg_diurnal/ERA5_diurnal_climatology_2018_2023_utc.nc"]
+# INPUT_FILES = ["/scratch/leko/ERA5/precip/ERA5_1_deg_diurnal/ERA5_diurnal_climatology_2018_2023_utc.nc"]
 
 # if RELATIVE:
-#     OUTPUT_FILES = [f"/scratch/leko/ERA5/ERA5_1_deg_diurnal/IMERG_diurnal_fit_utc_relative_new.nc" for _ in INPUT_FILES]
+#     OUTPUT_FILES = [f"/scratch/leko/ERA5/precip/ERA5_1_deg_diurnal/ERA5_diurnal_fit_utc_relative.nc" for _ in INPUT_FILES]
 # else:
-#     OUTPUT_FILES = [f"/scratch/leko/ERA5/ERA5_1_deg_diurnal/IMERG_diurnal_fit_utc_new.nc" for _ in INPUT_FILES]
+#     OUTPUT_FILES = [f"/scratch/leko/ERA5/precip/ERA5_1_deg_diurnal/ERA5_diurnal_fit_utc.nc" for _ in INPUT_FILES]
 
 # DYAMOND MODELS
-RELATIVE = False
+# RELATIVE = False
+# VAR_NAME = "pr"
+# MODELS = ["ARPEGE", "GEOS", "gSAM", "ICON", "SHiELD"]
+# INPUT_FILES = [f"/scratch/leko/DYAMOND_PRECIP/diurnal/{model}_diurnal_feb2020_utc.nc" for model in MODELS]
+# OUTPUT_FILES = [f"/scratch/leko/DYAMOND_PRECIP/diurnal/{model}_diurnal_fit_feb2020_utc.nc" for model in MODELS]
+
+#IMERG February 2020
+RELATIVE = False 
 VAR_NAME = "pr"
-MODELS = ["ARPEGE", "GEOS", "gSAM", "ICON", "SHiELD"]
-INPUT_FILES = [f"/scratch/leko/DYAMOND/diurnal/{model}_diurnal_feb2020_utc.nc" for model in MODELS]
-OUTPUT_FILES = [f"/scratch/leko/DYAMOND/diurnal/{model}_diurnal_fit_feb2020_utc.nc" for model in MODELS]
+
+INPUT_FILES = ["/scratch/leko/IMERG/IMERG_1_deg_diurnal/IMERG_diurnal_feb2020_utc.nc"]
+if RELATIVE:
+    OUTPUT_FILES = [f"/scratch/leko/IMERG/IMERG_1_deg_diurnal/IMERG_diurnal_feb2020_fit_utc_relative.nc" for _ in INPUT_FILES]
+else:
+    OUTPUT_FILES = [f"/scratch/leko/IMERG/IMERG_1_deg_diurnal/IMERG_diurnal_feb2020_fit_utc.nc" for _ in INPUT_FILES]
+
 
 # --------------------------------------------------
 # LOAD DATA
 # --------------------------------------------------
 
-for model, INPUT_FILE, OUTPUT_FILE in zip(MODELS, INPUT_FILES, OUTPUT_FILES):
+for INPUT_FILE, OUTPUT_FILE in zip(INPUT_FILES, OUTPUT_FILES):
     print("Opening file...")
     ds = xr.open_dataset(INPUT_FILE)
     da = ds[VAR_NAME]   # DataArray (month, hour_of_day, lon, lat)

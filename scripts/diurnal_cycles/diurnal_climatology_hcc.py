@@ -78,7 +78,6 @@ def build_diurnal_climatology(
         utc
 ):
     input_root = Path(input_root)
-    year = 2018
     monthly_clims = []
     ds = xr.open_dataset(input_root)
     if dataset_name == "HCC":
@@ -139,23 +138,21 @@ def build_diurnal_climatology(
 
 if __name__ == "__main__":
     
-    # Example for ccic
-    build_diurnal_climatology(
-        dataset_name="HCC",
-        input_root="/scratch/leko/HCC/hcc_2018_all.nc", # old HCC
-        #input_root= '/scratch/amell/hcc_paper/hcc_2018_opt.nc', # new HCC with optimal threshold
-        output_file="/scratch/leko/HCC/HCC_diurnal_climatology_2018.nc", # old HCC
-        #output_file="/scratch/leko/HCC/HCC_diurnal_climatology_2018_new.nc", # new HCC with optimal threshold
-        utc=True
-    )
-    
-    # # Example for era5
+    # # Example for ccic
     # build_diurnal_climatology(
-    #     dataset_name="ERA5 HCC",
-    #     input_root="/scratch/leko/HCC/ERA5/ERA5_1_deg_diurnal/2018/2018_ERA5_diurnal.nc",
-    #     output_file="/scratch/leko/HCC/ERA5/ERA5_1_deg_diurnal/2018/ERA5_hcc_diurnal_climatology_2018.nc",
+    #     dataset_name="HCC",
+    #     input_root= '/scratch/amell/hcc_paper/hcc_2018_opt.nc', # new HCC with optimal threshold
+    #     output_file="/scratch/leko/HCC/HCC_diurnal_climatology_2018.nc", # new HCC with optimal threshold
     #     utc=True
     # )
+    
+    # Example for era5
+    build_diurnal_climatology(
+        dataset_name="ERA5 HCC",
+        input_root="/scratch/leko/ERA5/HCC/ERA5_1_deg_diurnal/2018/2018_ERA5_diurnal.nc",
+        output_file="/scratch/leko/ERA5/HCC/ERA5_1_deg_diurnal/ERA5_hcc_diurnal_climatology_2018.nc",
+        utc=True
+    )
     
 
     

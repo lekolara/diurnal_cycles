@@ -3,10 +3,10 @@ set -euo pipefail
 
 NUM_PROCS=64
 BASE="/scratch/leko"
-#RAW_BASE=$BASE/ERA5/ERA5_raw
-#OUT_BASE=$BASE/ERA5/ERA5_1_deg
-RAW_BASE=$BASE/HCC/ERA5/ERA5_hcc_raw/regular_grid_0.25
-OUT_BASE=$BASE/HCC/ERA5/ERA5_hcc_1_deg
+#RAW_BASE=$BASE/ERA5/precip/ERA5_raw
+#OUT_BASE=$BASE/ERA5/precip/ERA5_1_deg
+RAW_BASE=$BASE/ERA5/HCC/ERA5_hcc_raw
+OUT_BASE=$BASE/ERA5/HCC/ERA5_hcc_1_deg
 #GRID_FILE=$BASE/ERA5/ERA5_grid.txt
 TARGET_GRID=$BASE/latlon_grid_1deg.txt
 

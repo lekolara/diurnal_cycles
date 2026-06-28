@@ -111,18 +111,16 @@ def fitted_amplitude(y_fit, relative = None):
 
 
 # --------------------------------------------------
-# USER SETTINGS
+# UNCOMMENT THE FOLLOWING BLOCKS TO RUN FOR DIFFERENT DATASETS
 # --------------------------------------------------
 
 # CCIC
-#INPUT_FILE = "/scratch/leko/HCC/HCC_diurnal_climatology_2018_utc.nc" # old HCC
-INPUT_FILE = "/scratch/leko/HCC/HCC_diurnal_climatology_2018_new_utc.nc" # new HCC with optimal threshold
+INPUT_FILE = "/scratch/leko/HCC/HCC_diurnal_climatology_2018_utc.nc" # new HCC with optimal threshold
 
 VAR_NAME = "hcc"          # precipitation variable
 RELATIVE = False        # True -> normalize by monthly mean
-NEW = True             # whether to use new HCC with optimal threshold or old HCC with all thresholds
 
-OUTPUT_FILE = f"/scratch/leko/HCC/CCIC_HCC_diurnal_fit_utc" + "_new"*NEW + "relative"*RELATIVE + ".nc"
+OUTPUT_FILE = f"/scratch/leko/HCC/CCIC_HCC_diurnal_fit_utc" + "relative"*RELATIVE + ".nc"
 
 # ERA5
 # RELATIVE = False 
@@ -131,9 +129,9 @@ OUTPUT_FILE = f"/scratch/leko/HCC/CCIC_HCC_diurnal_fit_utc" + "_new"*NEW + "rela
 # INPUT_FILE = "/scratch/leko/HCC/ERA5/ERA5_1_deg_diurnal/2018/ERA5_hcc_diurnal_climatology_2018_utc.nc"
 
 # if RELATIVE:
-#     OUTPUT_FILE = f"/scratch/leko/HCC/ERA5/ERA5_1_deg_diurnal/ERA5_diurnal_fit_utc_relative_new.nc"
+#     OUTPUT_FILE = f"/scratch/leko/HCC/ERA5/ERA5_1_deg_diurnal/ERA5_diurnal_fit_utc_relative.nc"
 # else:
-#     OUTPUT_FILE = f"/scratch/leko/HCC/ERA5/ERA5_1_deg_diurnal/ERA5_diurnal_fit_utc_new.nc"
+#     OUTPUT_FILE = f"/scratch/leko/HCC/ERA5/ERA5_1_deg_diurnal/ERA5_diurnal_fit_utc.nc"
 
 # --------------------------------------------------
 # LOAD DATA

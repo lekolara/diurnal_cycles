@@ -111,7 +111,7 @@ def fitted_amplitude(y_fit, relative = None):
 
 
 # --------------------------------------------------
-# USER SETTINGS
+# UNCOMMENT THE FOLLOWING BLOCKS TO RUN FOR DIFFERENT DATASETS
 # --------------------------------------------------
 # CCIC
 # INPUT_FILES = ["/data/s5/users/lara/master_thesis/data/ccic/CCIC_TIWP_diurnal_climatology_2018_2023_utc.nc"]
@@ -121,29 +121,39 @@ def fitted_amplitude(y_fit, relative = None):
 
 
 # if RELATIVE:
-#     OUTPUT_FILES = [f"/data/s5/users/lara/master_thesis/data/ccic/CCIC_diurnal_fit_utc_relative_new.nc" for _ in INPUT_FILES]
+#     OUTPUT_FILES = [f"/data/s5/users/lara/master_thesis/data/ccic/CCIC_diurnal_fit_utc_relative.nc" for _ in INPUT_FILES]
 # else:
-#     OUTPUT_FILES = [f"/data/s5/users/lara/master_thesis/data/ccic/CCIC_diurnal_fit_utc_new.nc" for _ in INPUT_FILES]
+#     OUTPUT_FILES = [f"/data/s5/users/lara/master_thesis/data/ccic/CCIC_diurnal_fit_utc.nc" for _ in INPUT_FILES]
 
 
 # ERA5
-# INPUT_FILES = ["/data/s5/users/lara/master_thesis/data/ERA5/ERA5_diurnal_climatology_2018_2023_utc.nc"]
+INPUT_FILES = ["/data/s5/users/lara/master_thesis/data/ERA5/ERA5_diurnal_climatology_2018_2023_utc.nc"]
+
+VAR_NAME = "tiwp"          # tiwp variable
+RELATIVE = False        # True -> normalize by monthly mean
+
+
+if RELATIVE:
+    OUTPUT_FILES = [f"/data/s5/users/lara/master_thesis/data/ERA5/ERA5_diurnal_fit_utc_relative.nc" for _ in INPUT_FILES]
+else:
+    OUTPUT_FILES = [f"/data/s5/users/lara/master_thesis/data/ERA5/ERA5_diurnal_fit_utc.nc" for _ in INPUT_FILES]
+
+# DYAMOND MODELS
+# MODELS = ["ARPEGE", "GEOS", "GSAM", "ICON", "IFS", "MPAS", "GEM", "GFDL", "GRIST"]
+# INPUT_FILES = [f"/data/s5/users/lara/master_thesis/data/DYAMOND_TIWP/{model}_diurnal_feb2020_utc.nc" for model in MODELS]
+# VAR_NAME = "tiwp"          # tiwp variable
+# RELATIVE = False        # True -> normalize by monthly mean             
+# OUTPUT_FILES = [f"/data/s5/users/lara/master_thesis/data/DYAMOND_TIWP/{model}_diurnal_fit_feb2020_utc.nc" for model in MODELS]
+
+# # CCIC FEB 2020
+# INPUT_FILES = ["/data/s5/users/lara/master_thesis/data/ccic/CCIC_diurnal_feb2020_utc.nc"]
 
 # VAR_NAME = "tiwp"          # tiwp variable
 # RELATIVE = False        # True -> normalize by monthly mean
 
 
-# if RELATIVE:
-#     OUTPUT_FILES = [f"/data/s5/users/lara/master_thesis/data/ERA5/ERA5_diurnal_fit_utc_relative_new.nc" for _ in INPUT_FILES]
-# else:
-#     OUTPUT_FILES = [f"/data/s5/users/lara/master_thesis/data/ERA5/ERA5_diurnal_fit_utc_new.nc" for _ in INPUT_FILES]
+# OUTPUT_FILES = [f"/data/s5/users/lara/master_thesis/data/ccic/CCIC_diurnal_feb2020_fit_utc.nc" for _ in INPUT_FILES]
 
-# DYAMOND MODELS
-MODELS = ["ARPEGE", "GEOS", "GSAM", "ICON", "IFS", "MPAS", "GEM", "GFDL", "GRIST"]
-INPUT_FILES = [f"/data/s5/users/lara/master_thesis/data/DYAMOND/{model}_diurnal_feb2020_utc.nc" for model in MODELS]
-VAR_NAME = "tiwp"          # tiwp variable
-RELATIVE = False        # True -> normalize by monthly mean             
-OUTPUT_FILES = [f"/data/s5/users/lara/master_thesis/data/DYAMOND/{model}_diurnal_fit_feb2020_utc.nc" for model in MODELS]
 
 # --------------------------------------------------
 # LOAD DATA
@@ -251,11 +261,7 @@ for INPUT_FILE, OUTPUT_FILE in zip(INPUT_FILES, OUTPUT_FILES):
             os.remove(file)
 
     print("Saving output file...")
-    # amp_month.to_netcdf(OUTPUT_FILE_AMPLITUDE)
-    # phase_month.to_netcdf(OUTPUT_FILE_PHASE)
     ds_out.to_netcdf(OUTPUT_FILE)
 
     print("Done!")
-    # print("Output written to:", OUTPUT_FILE_AMPLITUDE)
-    # print("Output written to:", OUTPUT_FILE_PHASE)
     print("Output written to:", OUTPUT_FILE)

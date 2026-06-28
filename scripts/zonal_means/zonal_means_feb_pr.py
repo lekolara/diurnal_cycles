@@ -6,8 +6,8 @@ import os
 
 DYAMOND_DIR = "/scratch/nilsmu/DYAMOND_precipitation/data/latlon_grid_1deg"
 IMERG_DIR   = "/scratch/leko/IMERG/IMERG_1_deg"
-ERA5_DIR    = "/scratch/leko/ERA5/ERA5_1_deg"
-OUTPUT_DIR  = "/scratch/leko/zonal_means/feb"
+ERA5_DIR    = "/scratch/leko/ERA5/precip/ERA5_1_deg"
+OUTPUT_DIR  = "/scratch/leko/zonal_means_precip/feb"
 
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 

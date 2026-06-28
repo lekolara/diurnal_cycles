@@ -13,7 +13,7 @@
 set -euo pipefail
 source config.sh
 
-# gSAM is not correct here, it shows cummulative value, fixed in gSAM_conversion.py
+# gSAM is not correct here, it shows cummulative value, this us fixed in gSAM_conversion.py
 # IFS is not converted from m to mm here, it also  it shows cummulative value, fixed in IFS_conversion.py
 
 MASS_FLUX_TO_MM_H=3610.659
