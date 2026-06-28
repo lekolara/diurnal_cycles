@@ -1,3 +1,4 @@
+# Diurnal Cycles of Deep Convective Processes in Satellite Measurements, the ERA5 Reanalysis and DYAMOND km-scale Models
 
 This project contains scripts for downloading data from the DYAMOND project, ERA5 and IMERG (`scripts/remap_scripts/`), pre-processing, including combining the data into a common grid with conservative remapping from CDO (Climate Data Operators) (`scripts/remap_scripts/`) and computing data on a diurnal (`scripts/diurnal_cycles/`) and zonal level (`scripts/zonal_means/`). It also contains notebooks (`scripts/visualisation`) where the processed data is plotted. 
 
